@@ -22,7 +22,7 @@ world world_new(void) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, x, y, rand() % 2);
+            world_cell_set(&out, x, y, (rand() % 8) == 1);
         }
     }
 
@@ -113,8 +113,10 @@ int main(void) {
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
         40, 40, 1024, 512, 3, BlackPixel(display, screen), WhitePixel(display, screen));
     Pixmap pixmap    = XCreatePixmap(display, window, 1024, 512, DefaultDepth(display, screen));
+    Pixmap player    = XCreatePixmap(display, window, 20, 16, DefaultDepth(display, screen));
+    Pixmap cell      = XCreatePixmap(display, window, 20, 20, DefaultDepth(display, screen));
     GC gc            = DefaultGC(display, screen);
-    XGCValues gcv_white, gcv_black;
+    XGCValues gcv_white, gcv_black, gcv_green;
 
     state game_state = splash;
     world the_world;
@@ -126,6 +128,32 @@ int main(void) {
     XMapWindow(display, window);
     gcv_white.foreground = WhitePixel(display, screen);
     gcv_black.foreground = BlackPixel(display, screen);
+    gcv_green.foreground = 0x00ff00;
+
+    /* build a sprite for cells */
+    XChangeGC(display, gc, GCForeground, &gcv_black);
+    XFillRectangle(display, cell, gc, 0, 0, 20, 20);
+    XChangeGC(display, gc, GCForeground, &gcv_white);
+    XDrawPoint(display, cell, gc, 0, 0);
+    XDrawPoint(display, cell, gc, 0, 19);
+    XDrawPoint(display, cell, gc, 19, 0);
+    XDrawPoint(display, cell, gc, 19, 19);
+    XChangeGC(display, gc, GCForeground, &gcv_black);
+
+    /* build a player sprite */
+    XChangeGC(display, gc, GCForeground, &gcv_white);
+    XFillRectangle(display, player, gc, 0, 0, 20, 16);
+    XChangeGC(display, gc, GCForeground, &gcv_green);
+    XFillRectangle(display, player, gc,  0,  0, 4, 4);
+    XFillRectangle(display, player, gc,  0,  8, 4, 4);
+    XFillRectangle(display, player, gc,  4, 12, 4, 4);
+    XFillRectangle(display, player, gc,  8, 12, 4, 4);
+    XFillRectangle(display, player, gc, 12,  0, 4, 4);
+    XFillRectangle(display, player, gc, 12, 12, 4, 4);
+    XFillRectangle(display, player, gc, 16,  4, 4, 4);
+    XFillRectangle(display, player, gc, 16,  8, 4, 4);
+    XFillRectangle(display, player, gc, 16, 12, 4, 4);
+    XChangeGC(display, gc, GCForeground, &gcv_black);
 
     while (game_state != quit) {
         usleep(16666);
@@ -166,18 +194,15 @@ int main(void) {
             case playing_up:
             case playing_down: {
                 int x, y;
+
+                XCopyArea(display, player, pixmap, gc, 0, 0, 20, 16, 100, 248);
+
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
                         if (world_cell_alive(&the_world, x, y)) {
                             int ox = x*20-dx;
                             int oy = y*20-dy;
-                            XFillRectangle(display, pixmap, gc, ox, oy, 20, 20);
-                            XChangeGC(display, gc, GCForeground, &gcv_white);
-                            XDrawPoint(display, pixmap, gc, ox, oy);
-                            XDrawPoint(display, pixmap, gc, ox, oy+19);
-                            XDrawPoint(display, pixmap, gc, ox+19, oy);
-                            XDrawPoint(display, pixmap, gc, ox+19, oy+19);
-                            XChangeGC(display, gc, GCForeground, &gcv_black);
+                            XCopyArea(display, cell, pixmap, gc, 0, 0, 20, 20, ox, oy);
                         }
                     }
                 }
