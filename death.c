@@ -1,4 +1,5 @@
 #include <X11/Xlib.h>
+#include <string.h>
 
 int main(void) {
     Display *display = XOpenDisplay(NULL);
@@ -23,16 +24,41 @@ int main(void) {
                 break;
             case splash:
                 switch (event.type) {
-                    case Expose:
-                        /* initial draw */
+                    case Expose: {
+                        char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
+                        XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash,
+                            strlen(splash));
+                        XFlush(display);
                         break;
+                    }
                     case KeyPress:
+                        XClearWindow(display, window);
+                        XFlush(display);
+                        state = playing;
+                        break;
+                };
+                break;
+            case playing:
+                switch (event.type) {
+                    case KeyPress: {
+                        char *death = "you died.";
+                        XClearWindow(display, window);
+                        XDrawString(display, window, DefaultGC(display, screen), 10, 50, death,
+                            strlen(death));
+                        XFlush(display);
+                        state = dead;
+                        break;
+                    }
+                };
+                break;
+            case dead:
+                switch (event.type) {
+                    case KeyPress:
+                        XClearWindow(display, window);
+                        XFlush(display);
                         state = quit;
                         break;
                 };
-            case playing:
-                break;
-            case dead:
                 break;
             case quit:
                 break;
