@@ -169,7 +169,15 @@ int main(void) {
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
                         if (world_cell_alive(&the_world, x, y)) {
-                            XFillRectangle(display, pixmap, gc, x*20 - dx, y*20 - dy, 20, 20);
+                            int ox = x*20-dx;
+                            int oy = y*20-dy;
+                            XFillRectangle(display, pixmap, gc, ox, oy, 20, 20);
+                            XChangeGC(display, gc, GCForeground, &gcv_white);
+                            XDrawPoint(display, pixmap, gc, ox, oy);
+                            XDrawPoint(display, pixmap, gc, ox, oy+19);
+                            XDrawPoint(display, pixmap, gc, ox+19, oy);
+                            XDrawPoint(display, pixmap, gc, ox+19, oy+19);
+                            XChangeGC(display, gc, GCForeground, &gcv_black);
                         }
                     }
                 }
