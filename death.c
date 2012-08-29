@@ -106,6 +106,8 @@ state event_handler(state in, XEvent event) {
 
 #ifndef _TESTING
 int main(void) {
+    short tick = 0;
+    int dx = 0, dy = 0;
     Display *display = XOpenDisplay(NULL);
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
@@ -121,17 +123,29 @@ int main(void) {
     XMapWindow(display, window);
 
     while (game_state != quit) {
-        usleep(16666);
+        usleep(50000);
 
         /* X11 events */
-        if (XPending(display)) {
+        while (XPending(display)) {
             XEvent event;
             XNextEvent(display, &event);
 
             game_state = event_handler(game_state, event);
         }
 
-        the_world = world_step(the_world);
+        /* game */
+        if (game_state == playing_up) {
+            dy = dy - 4;
+        }
+        if (game_state == playing_down) {
+            dy = dy + 4;
+        }
+        if ((game_state == playing_nil) || (game_state == playing_up) || (game_state == playing_down)) {
+            if (tick == 0) {
+                the_world = world_step(the_world);
+            }
+            tick = (tick + 1) % 3;
+        }
 
         /* repaint */
         XClearWindow(display, window);
@@ -148,10 +162,11 @@ int main(void) {
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
                         if (world_cell_alive(the_world, x, y)) {
-                            XFillRectangle(display, window, DefaultGC(display, screen), x*20, y*20, 20, 20);
+                            XFillRectangle(display, window, DefaultGC(display, screen), x*20 - dx, y*20 - dy, 20, 20);
                         }
                     }
                 }
+                ++dx;
                 break;
             }
             case dead: {
