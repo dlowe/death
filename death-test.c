@@ -96,6 +96,175 @@ START_TEST (test_event_handler)
 }
 END_TEST
 
+short basic_world_assertions(world in) {
+    int x, y;
+    for (x = 0; x < DIM; ++x) {
+        for (y = 0; y < DIM; ++y) {
+            short alive = world_cell_alive(in, x, y);
+            if (! ((alive == 0) || (alive == 1))) {
+                return 0;
+            }
+
+            short n = world_cell_living_neighbors(in, x, y);
+            if ((n < 0) || (n > 8)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+START_TEST (test_world_new)
+{
+    basic_world_assertions(world_new());
+}
+END_TEST
+
+world str_to_world(short width, char *in) {
+    world out;
+
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
+            out.cells[x][y] = 0;
+        }
+    }
+
+    int y = 0;
+    while (in[width * y]) {
+        for (int x = 0; x < width; ++x) {
+            /* printf("%c", in[width * y + x]); */
+            out.cells[x][y] = (in[width * y + x] != '_');
+        }
+        /* printf("\n"); */
+        ++y;
+    }
+    return out;
+}
+
+short worlds_are_equal(world w1, world w2) {
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
+            if (world_cell_alive(w1, x, y) != world_cell_alive(w2, x, y)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+void print_world(world w, short width, short height) {
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            printf("%c", world_cell_alive(w, x, y) ? 'O' : '_');
+        }
+        printf("\n");
+    }
+}
+
+START_TEST (test_world_step_block)
+{
+    char *block =
+        "____"
+        "_OO_"
+        "_OO_"
+        "____";
+
+    world w0 = str_to_world(4, block);
+    world w1 = world_step(w0);
+    fail_unless(worlds_are_equal(w0, w1));
+}
+END_TEST
+
+START_TEST (test_world_step_beehive)
+{
+    char *beehive =
+        "______"
+        "__OO__"
+        "_O__O_"
+        "__OO__"
+        "______";
+    world w0 = str_to_world(6, beehive);
+    world w1 = world_step(w0);
+
+    fail_unless(worlds_are_equal(w0, w1));
+}
+END_TEST
+
+START_TEST (test_world_step_blinker)
+{
+    char *blinker0 =
+        "_____"
+        "__O__"
+        "__O__"
+        "__O__"
+        "_____";
+
+    char *blinker1 =
+        "_____"
+        "_____"
+        "_OOO_"
+        "_____"
+        "_____";
+
+    world w0 = str_to_world(5, blinker0);
+    world w1 = world_step(w0);
+    world w2 = world_step(w1);
+
+    fail_unless(worlds_are_equal(w1, str_to_world(5, blinker1)));
+    fail_unless(worlds_are_equal(w2, w0));
+}
+END_TEST
+
+START_TEST (test_world_step_glider)
+{
+    char *glider0 =
+        "________"
+        "__O_____"
+        "___O____"
+        "_OOO____"
+        "________";
+
+    char *glider1 =
+        "________"
+        "________"
+        "_O_O____"
+        "__OO____"
+        "__O_____";
+
+    char *glider2 =
+        "________"
+        "________"
+        "___O____"
+        "_O_O____"
+        "__OO____";
+
+    char *glider3 =
+        "________"
+        "________"
+        "__O_____"
+        "___OO___"
+        "__OO____";
+
+    char *glider4 =
+        "________"
+        "________"
+        "___O____"
+        "____O___"
+        "__OOO___";
+
+    world w0 = str_to_world(8, glider0);
+    world w1 = world_step(w0);
+    world w2 = world_step(w1);
+    world w3 = world_step(w2);
+    world w4 = world_step(w3);
+
+    fail_unless(worlds_are_equal(w1, str_to_world(8, glider1)));
+    fail_unless(worlds_are_equal(w2, str_to_world(8, glider2)));
+    fail_unless(worlds_are_equal(w3, str_to_world(8, glider3)));
+    fail_unless(worlds_are_equal(w4, str_to_world(8, glider4)));
+}
+END_TEST
+
 int main(void) {
     TCase *tc;
     Suite *suite;
@@ -104,6 +273,11 @@ int main(void) {
     
     tc = tcase_create("death");
     tcase_add_test(tc, test_event_handler);
+    tcase_add_test(tc, test_world_new);
+    tcase_add_test(tc, test_world_step_block);
+    tcase_add_test(tc, test_world_step_beehive);
+    tcase_add_test(tc, test_world_step_blinker);
+    tcase_add_test(tc, test_world_step_glider);
 
     suite = suite_create("death");
     suite_add_tcase(suite, tc);
