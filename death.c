@@ -8,7 +8,7 @@
 
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-#define DIM 1000
+#define DIM 80
 #define world_cell_alive(w, x, y)  (w)->cells[(x)][(y)]
 #define world_cell_set(w, x, y, b) (w)->cells[(x)][(y)] = (b)
 
@@ -112,6 +112,9 @@ int main(void) {
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
         40, 40, 1024, 512, 3, BlackPixel(display, screen), WhitePixel(display, screen));
+    Pixmap pixmap    = XCreatePixmap(display, window, 1024, 512, DefaultDepth(display, screen));
+    GC gc            = DefaultGC(display, screen);
+    XGCValues gcv_white, gcv_black;
 
     state game_state = splash;
     world the_world;
@@ -121,9 +124,11 @@ int main(void) {
 
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
+    gcv_white.foreground = WhitePixel(display, screen);
+    gcv_black.foreground = BlackPixel(display, screen);
 
     while (game_state != quit) {
-        usleep(50000);
+        usleep(16666);
 
         /* X11 events */
         while (XPending(display)) {
@@ -135,24 +140,26 @@ int main(void) {
 
         /* game */
         if (game_state == playing_up) {
-            dy = dy - 4;
+            dy = dy - 2;
         }
         if (game_state == playing_down) {
-            dy = dy + 4;
+            dy = dy + 2;
         }
         if ((game_state == playing_nil) || (game_state == playing_up) || (game_state == playing_down)) {
             if (tick == 0) {
                 the_world = world_step(&the_world);
             }
-            tick = (tick + 1) % 3;
+            tick = (tick + 1) % 30;
         }
 
-        /* repaint */
-        XClearWindow(display, window);
+        /* repaint into buffer */
+        XChangeGC(display, gc, GCForeground, &gcv_white);
+        XFillRectangle(display, pixmap, gc, 0, 0, 1024, 512);
+        XChangeGC(display, gc, GCForeground, &gcv_black);
         switch (game_state) {
             case splash: {
                 char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
-                XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash, strlen(splash));
+                XDrawString(display, pixmap, gc, 10, 50, splash, strlen(splash));
                 break;
             }
             case playing_nil:
@@ -162,21 +169,24 @@ int main(void) {
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
                         if (world_cell_alive(&the_world, x, y)) {
-                            XFillRectangle(display, window, DefaultGC(display, screen), x*20 - dx, y*20 - dy, 20, 20);
+                            XFillRectangle(display, pixmap, gc, x*20 - dx, y*20 - dy, 20, 20);
                         }
                     }
                 }
-                dx = dx + 8;
+                dx = dx + 1;
                 break;
             }
             case dead: {
                 char *death = "you died.";
-                XDrawString(display, window, DefaultGC(display, screen), 10, 50, death, strlen(death));
+                XDrawString(display, pixmap, gc, 10, 50, death, strlen(death));
                 break;
             }
             default:
                 break;
         };
+
+        /* copy buffer & flush */
+        XCopyArea(display, pixmap, window, gc, 0, 0, 1024, 512, 0, 0);
         XFlush(display);
     }
 
