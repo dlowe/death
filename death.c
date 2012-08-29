@@ -1,6 +1,9 @@
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 int main(void) {
     Display *display = XOpenDisplay(NULL);
@@ -31,45 +34,57 @@ int main(void) {
                     break;
                 case splash:
                     switch (event.type) {
-                        case Expose: {
-                            char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
-                            XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash,
-                                strlen(splash));
-                            XFlush(display);
-                            break;
-                        }
                         case KeyPress:
                             XClearWindow(display, window);
                             XFlush(display);
-                            state = playing;
+                            switch ((long)XLookupKeysym(&event.xkey, 0)) {
+                                case XK_q:
+                                    state = quit;
+                                    break;
+                                default:
+                                    state = playing;
+                                    break;
+                            };
                             break;
                     };
                     break;
                 case playing:
                     switch (event.type) {
-                        case KeyPress: {
-                            char *death = "you died.";
-                            XClearWindow(display, window);
-                            XDrawString(display, window, DefaultGC(display, screen), 10, 50, death,
-                                strlen(death));
-                            XFlush(display);
+                        case KeyPress:
                             state = dead;
                             break;
-                        }
                     };
                     break;
                 case dead:
                     switch (event.type) {
                         case KeyPress:
-                            XClearWindow(display, window);
-                            XFlush(display);
-                            state = quit;
+                            state = splash;
                             break;
                     };
                     break;
                 case quit:
                     break;
             };
+        }
+
+        /* repaint */
+        if (state != unmapped) {
+            XClearWindow(display, window);
+            switch (state) {
+                case splash: {
+                    char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
+                    XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash, strlen(splash));
+                    break;
+                }
+                case dead: {
+                    char *death = "you died.";
+                    XDrawString(display, window, DefaultGC(display, screen), 10, 50, death, strlen(death));
+                    break;
+                }
+                default:
+                    break;
+            };
+            XFlush(display);
         }
     }
 
