@@ -27,7 +27,6 @@ state event_handler(state in, XEvent event) {
                         return splash;
                     }
             };
-            break;
         case KeyRelease:
             switch ((long)XLookupKeysym(&event.xkey, 0)) {
                 case XK_Up:
@@ -39,9 +38,7 @@ state event_handler(state in, XEvent event) {
                     if (in == playing_down) {
                         return playing_nil;
                     }
-                    break;
             };
-            break;
     };
     return in;
 }
