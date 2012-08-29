@@ -101,11 +101,12 @@ short basic_world_assertions(world in) {
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
             short alive = world_cell_alive(in, x, y);
+            short n = world_cell_living_neighbors(in, x, y);
+
             if (! ((alive == 0) || (alive == 1))) {
                 return 0;
             }
 
-            short n = world_cell_living_neighbors(in, x, y);
             if ((n < 0) || (n > 8)) {
                 return 0;
             }
@@ -121,17 +122,18 @@ START_TEST (test_world_new)
 END_TEST
 
 world str_to_world(short width, char *in) {
+    int x, y;
     world out;
 
-    for (int x = 0; x < DIM; ++x) {
-        for (int y = 0; y < DIM; ++y) {
+    for (x = 0; x < DIM; ++x) {
+        for (y = 0; y < DIM; ++y) {
             out.cells[x][y] = 0;
         }
     }
 
-    int y = 0;
+    y = 0;
     while (in[width * y]) {
-        for (int x = 0; x < width; ++x) {
+        for (x = 0; x < width; ++x) {
             /* printf("%c", in[width * y + x]); */
             out.cells[x][y] = (in[width * y + x] != '_');
         }
@@ -142,8 +144,9 @@ world str_to_world(short width, char *in) {
 }
 
 short worlds_are_equal(world w1, world w2) {
-    for (int x = 0; x < DIM; ++x) {
-        for (int y = 0; y < DIM; ++y) {
+    int x, y;
+    for (x = 0; x < DIM; ++x) {
+        for (y = 0; y < DIM; ++y) {
             if (world_cell_alive(w1, x, y) != world_cell_alive(w2, x, y)) {
                 return 0;
             }
@@ -153,8 +156,9 @@ short worlds_are_equal(world w1, world w2) {
 }
 
 void print_world(world w, short width, short height) {
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    int x, y;
+    for (y = 0; y < height; ++y) {
+        for (x = 0; x < width; ++x) {
             printf("%c", world_cell_alive(w, x, y) ? 'O' : '_');
         }
         printf("\n");

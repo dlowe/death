@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-#define DIM 10
+#define DIM 100
 
 typedef struct {
     short cells[DIM][DIM];
@@ -39,7 +40,7 @@ short world_cell_living_neighbors(world in, short x, short y) {
     for (dx = -1; dx <= 1; ++dx) {
         for (dy = -1; dy <= 1; ++dy) {
             if (! ((dx == 0) && (dy == 0))) {
-            n += world_cell_alive(in, x+dx, y+dy);
+                n += world_cell_alive(in, x+dx, y+dy);
             }
         }
     }
@@ -110,6 +111,10 @@ int main(void) {
         40, 40, 1024, 512, 3, BlackPixel(display, screen), WhitePixel(display, screen));
 
     state game_state = splash;
+    world the_world;
+
+    srand(time(0));
+    the_world = world_new();
 
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
@@ -125,6 +130,8 @@ int main(void) {
             game_state = event_handler(game_state, event);
         }
 
+        the_world = world_step(the_world);
+
         /* repaint */
         XClearWindow(display, window);
         switch (game_state) {
@@ -134,15 +141,16 @@ int main(void) {
                 break;
             }
             case playing_nil:
-                break;
-            case playing_up: {
-                char *upmsg = "up";
-                XDrawString(display, window, DefaultGC(display, screen), 10, 50, upmsg, strlen(upmsg));
-                break;
-            }
+            case playing_up:
             case playing_down: {
-                char *downmsg = "down";
-                XDrawString(display, window, DefaultGC(display, screen), 10, 80, downmsg, strlen(downmsg));
+                int x, y;
+                for (y = 0; y < DIM; ++y) {
+                    for (x = 0; x < DIM; ++x) {
+                        if (world_cell_alive(the_world, x, y)) {
+                            XFillRectangle(display, window, DefaultGC(display, screen), x*20, y*20, 20, 20);
+                        }
+                    }
+                }
                 break;
             }
             case dead: {
