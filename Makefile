@@ -28,3 +28,8 @@ static-test:
 
 $(NAME): static-test $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) -I/usr/X11R6/include -L/usr/X11R6/lib -lX11
+
+.PHONY: clean
+clean:
+	rm -rf $(NAME) $(OBJ)
+	rm -rf prog.c prog
