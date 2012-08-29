@@ -8,9 +8,9 @@
 
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-#define DIM 80
-#define world_cell_alive(w, x, y)  w.cells[(x)][(y)]
-#define world_cell_set(w, x, y, b) w.cells[(x)][(y)] = (b)
+#define DIM 1000
+#define world_cell_alive(w, x, y)  (w)->cells[(x)][(y)]
+#define world_cell_set(w, x, y, b) (w)->cells[(x)][(y)] = (b)
 
 typedef struct {
     short cells[DIM][DIM];
@@ -22,14 +22,14 @@ world world_new(void) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(out, x, y, rand() % 2);
+            world_cell_set(&out, x, y, rand() % 2);
         }
     }
 
     return out;
 }
 
-short world_cell_living_neighbors(world in, short x, short y) {
+short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
     short dx, dy;
     for (dx = -1; dx <= 1; ++dx) {
@@ -49,7 +49,7 @@ short world_cell_living_neighbors(world in, short x, short y) {
     return n;
 }
 
-world world_step(world in) {
+world world_step(world *in) {
     world out;
     int x, y;
 
@@ -57,9 +57,9 @@ world world_step(world in) {
         for (y = 0; y < DIM; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
             if (world_cell_alive(in, x, y)) {
-                world_cell_set(out, x, y, (n == 2) || (n == 3));
+                world_cell_set(&out, x, y, (n == 2) || (n == 3));
             } else {
-                world_cell_set(out, x, y, n == 3);
+                world_cell_set(&out, x, y, n == 3);
             }
         }
     }
@@ -142,7 +142,7 @@ int main(void) {
         }
         if ((game_state == playing_nil) || (game_state == playing_up) || (game_state == playing_down)) {
             if (tick == 0) {
-                the_world = world_step(the_world);
+                the_world = world_step(&the_world);
             }
             tick = (tick + 1) % 3;
         }
@@ -161,12 +161,12 @@ int main(void) {
                 int x, y;
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
-                        if (world_cell_alive(the_world, x, y)) {
+                        if (world_cell_alive(&the_world, x, y)) {
                             XFillRectangle(display, window, DefaultGC(display, screen), x*20 - dx, y*20 - dy, 20, 20);
                         }
                     }
                 }
-                ++dx;
+                dx = dx + 2;
                 break;
             }
             case dead: {

@@ -96,7 +96,7 @@ START_TEST (test_event_handler)
 }
 END_TEST
 
-short basic_world_assertions(world in) {
+short basic_world_assertions(world *in) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -117,7 +117,8 @@ short basic_world_assertions(world in) {
 
 START_TEST (test_world_new)
 {
-    basic_world_assertions(world_new());
+    world w = world_new();
+    basic_world_assertions(&w);
 }
 END_TEST
 
@@ -127,7 +128,7 @@ world str_to_world(short width, char *in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(out, x, y, 0);
+            world_cell_set(&out, x, y, 0);
         }
     }
 
@@ -135,7 +136,7 @@ world str_to_world(short width, char *in) {
     while (in[width * y]) {
         for (x = 0; x < width; ++x) {
             /* printf("%c", in[width * y + x]); */
-            world_cell_set(out, x, y, in[width * y + x] != '_');
+            world_cell_set(&out, x, y, in[width * y + x] != '_');
         }
         /* printf("\n"); */
         ++y;
@@ -143,7 +144,7 @@ world str_to_world(short width, char *in) {
     return out;
 }
 
-short worlds_are_equal(world w1, world w2) {
+short worlds_are_equal(world *w1, world *w2) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -155,7 +156,7 @@ short worlds_are_equal(world w1, world w2) {
     return 1;
 }
 
-void print_world(world w, short width, short height) {
+void print_world(world *w, short width, short height) {
     int x, y;
     for (y = 0; y < height; ++y) {
         for (x = 0; x < width; ++x) {
@@ -174,8 +175,8 @@ START_TEST (test_world_step_block)
         "____";
 
     world w0 = str_to_world(4, block);
-    world w1 = world_step(w0);
-    fail_unless(worlds_are_equal(w0, w1));
+    world w1 = world_step(&w0);
+    fail_unless(worlds_are_equal(&w0, &w1));
 }
 END_TEST
 
@@ -188,9 +189,9 @@ START_TEST (test_world_step_beehive)
         "__OO__"
         "______";
     world w0 = str_to_world(6, beehive);
-    world w1 = world_step(w0);
+    world w1 = world_step(&w0);
 
-    fail_unless(worlds_are_equal(w0, w1));
+    fail_unless(worlds_are_equal(&w0, &w1));
 }
 END_TEST
 
@@ -211,11 +212,12 @@ START_TEST (test_world_step_blinker)
         "_____";
 
     world w0 = str_to_world(5, blinker0);
-    world w1 = world_step(w0);
-    world w2 = world_step(w1);
+    world w1_actual = world_step(&w0);
+    world w2_actual = world_step(&w1_actual);
+    world w1_expected = str_to_world(5, blinker1);
 
-    fail_unless(worlds_are_equal(w1, str_to_world(5, blinker1)));
-    fail_unless(worlds_are_equal(w2, w0));
+    fail_unless(worlds_are_equal(&w1_actual, &w1_expected));
+    fail_unless(worlds_are_equal(&w2_actual, &w0));
 }
 END_TEST
 
@@ -257,15 +259,19 @@ START_TEST (test_world_step_glider)
         "__OOO___";
 
     world w0 = str_to_world(8, glider0);
-    world w1 = world_step(w0);
-    world w2 = world_step(w1);
-    world w3 = world_step(w2);
-    world w4 = world_step(w3);
+    world w1_actual = world_step(&w0);
+    world w2_actual = world_step(&w1_actual);
+    world w3_actual = world_step(&w2_actual);
+    world w4_actual = world_step(&w3_actual);
+    world w1_expected = str_to_world(8, glider1);
+    world w2_expected = str_to_world(8, glider2);
+    world w3_expected = str_to_world(8, glider3);
+    world w4_expected = str_to_world(8, glider4);
 
-    fail_unless(worlds_are_equal(w1, str_to_world(8, glider1)));
-    fail_unless(worlds_are_equal(w2, str_to_world(8, glider2)));
-    fail_unless(worlds_are_equal(w3, str_to_world(8, glider3)));
-    fail_unless(worlds_are_equal(w4, str_to_world(8, glider4)));
+    fail_unless(worlds_are_equal(&w1_actual, &w1_expected));
+    fail_unless(worlds_are_equal(&w2_actual, &w2_expected));
+    fail_unless(worlds_are_equal(&w3_actual, &w3_expected));
+    fail_unless(worlds_are_equal(&w4_actual, &w4_expected));
 }
 END_TEST
 
