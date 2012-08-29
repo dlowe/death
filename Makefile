@@ -2,8 +2,12 @@ NAME := death
 CODE := $(NAME).c
 OBJ  := $(CODE:.c=.o)
 
-CC     := gcc
-CFLAGS := -ggdb -std=c89 -Wall -pedantic-errors
+TNAME   := $(NAME)-test
+TCODE   := $(TNAME).c
+
+CC      := gcc
+CFLAGS  := -ggdb -std=c89 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib
+LDFLAGS := -lX11
 
 .PHONY: all
 all: $(NAME)
@@ -26,10 +30,19 @@ static-test:
 	@echo "testing README.markdown"
 	@Markdown.pl README.markdown >/dev/null
 
-$(NAME): static-test $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $(OBJ) -I/usr/X11R6/include -L/usr/X11R6/lib -lX11
+.PHONY: test
+test: $(TNAME)
+	./$(TNAME)
+
+$(NAME): static-test test $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
+
+$(TNAME): $(TCODE) $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(TCODE) $(LDFLAGS) -lcheck
 
 .PHONY: clean
 clean:
 	rm -rf $(NAME) $(OBJ)
+	rm -rf $(TNAME)
 	rm -rf prog.c prog
+	rm -rf $(TNAME).dSYM

@@ -1,3 +1,5 @@
 death
+death-test
 death.o
 *.swp
+*.dSYM
