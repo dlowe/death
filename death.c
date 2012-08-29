@@ -166,7 +166,7 @@ int main(void) {
                         }
                     }
                 }
-                dx = dx + 2;
+                dx = dx + 8;
                 break;
             }
             case dead: {
