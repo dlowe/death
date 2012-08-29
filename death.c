@@ -1,5 +1,6 @@
 #include <X11/Xlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 int main(void) {
     Display *display = XOpenDisplay(NULL);
@@ -13,56 +14,63 @@ int main(void) {
     XMapWindow(display, window);
 
     while (state != quit) {
-        XEvent event;
-        XNextEvent(display, &event);
+        struct timeval timeout;
+        timeout.tv_sec  = 0;
+        timeout.tv_usec = 1000;
+        select(0, 0, 0, 0, &timeout);
 
-        switch (state) {
-            case unmapped:
-                if (event.type == MapNotify) {
-                    state = splash;
-                }
-                break;
-            case splash:
-                switch (event.type) {
-                    case Expose: {
-                        char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
-                        XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash,
-                            strlen(splash));
-                        XFlush(display);
-                        break;
+        if (XPending(display)) {
+            XEvent event;
+            XNextEvent(display, &event);
+
+            switch (state) {
+                case unmapped:
+                    if (event.type == MapNotify) {
+                        state = splash;
                     }
-                    case KeyPress:
-                        XClearWindow(display, window);
-                        XFlush(display);
-                        state = playing;
-                        break;
-                };
-                break;
-            case playing:
-                switch (event.type) {
-                    case KeyPress: {
-                        char *death = "you died.";
-                        XClearWindow(display, window);
-                        XDrawString(display, window, DefaultGC(display, screen), 10, 50, death,
-                            strlen(death));
-                        XFlush(display);
-                        state = dead;
-                        break;
-                    }
-                };
-                break;
-            case dead:
-                switch (event.type) {
-                    case KeyPress:
-                        XClearWindow(display, window);
-                        XFlush(display);
-                        state = quit;
-                        break;
-                };
-                break;
-            case quit:
-                break;
-        };
+                    break;
+                case splash:
+                    switch (event.type) {
+                        case Expose: {
+                            char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
+                            XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash,
+                                strlen(splash));
+                            XFlush(display);
+                            break;
+                        }
+                        case KeyPress:
+                            XClearWindow(display, window);
+                            XFlush(display);
+                            state = playing;
+                            break;
+                    };
+                    break;
+                case playing:
+                    switch (event.type) {
+                        case KeyPress: {
+                            char *death = "you died.";
+                            XClearWindow(display, window);
+                            XDrawString(display, window, DefaultGC(display, screen), 10, 50, death,
+                                strlen(death));
+                            XFlush(display);
+                            state = dead;
+                            break;
+                        }
+                    };
+                    break;
+                case dead:
+                    switch (event.type) {
+                        case KeyPress:
+                            XClearWindow(display, window);
+                            XFlush(display);
+                            state = quit;
+                            break;
+                    };
+                    break;
+                case quit:
+                    break;
+            };
+        }
     }
 
     XCloseDisplay(display);
