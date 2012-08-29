@@ -107,7 +107,7 @@ short basic_world_assertions(world in) {
                 return 0;
             }
 
-            if ((n < 0) || (n > 8)) {
+            if ((n < 0) || (n > 4)) {
                 return 0;
             }
         }
@@ -127,7 +127,7 @@ world str_to_world(short width, char *in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            out.cells[x][y] = 0;
+            world_cell_set(out, x, y, 0);
         }
     }
 
@@ -135,7 +135,7 @@ world str_to_world(short width, char *in) {
     while (in[width * y]) {
         for (x = 0; x < width; ++x) {
             /* printf("%c", in[width * y + x]); */
-            out.cells[x][y] = (in[width * y + x] != '_');
+            world_cell_set(out, x, y, in[width * y + x] != '_');
         }
         /* printf("\n"); */
         ++y;

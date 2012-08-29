@@ -8,7 +8,9 @@
 
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-#define DIM 100
+#define DIM 80
+#define world_cell_alive(w, x, y)  w.cells[(x)][(y)]
+#define world_cell_set(w, x, y, b) w.cells[(x)][(y)] = (b)
 
 typedef struct {
     short cells[DIM][DIM];
@@ -20,27 +22,27 @@ world world_new(void) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            out.cells[x][y] = rand() % 2;
+            world_cell_set(out, x, y, rand() % 2);
         }
     }
 
     return out;
 }
 
-short world_cell_alive(world in, short x, short y) {
-    if ((x < 0) || (y < 0) || (x >= DIM) || (y >= DIM)) {
-        return 0;
-    }
-    return in.cells[x][y];
-}
-
 short world_cell_living_neighbors(world in, short x, short y) {
     short n = 0;
     short dx, dy;
     for (dx = -1; dx <= 1; ++dx) {
-        for (dy = -1; dy <= 1; ++dy) {
-            if (! ((dx == 0) && (dy == 0))) {
-                n += world_cell_alive(in, x+dx, y+dy);
+        if ((x+dx >= 0) && (x+dx < DIM)) {
+            for (dy = -1; dy <= 1; ++dy) {
+                if ((y+dy >= 0) && (y+dy < DIM)) {
+                    if (! ((dx == 0) && (dy == 0))) {
+                        n += world_cell_alive(in, x+dx, y+dy);
+                        if (n >= 4) {
+                            return 4;
+                        }
+                    }
+                }
             }
         }
     }
@@ -53,12 +55,11 @@ world world_step(world in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            int n = world_cell_living_neighbors(in, x, y);
-            /* printf("[%d %d]: alive? %d, neighbors: %d\n", x, y, world_cell_alive(in, x, y), n); */
+            short n = world_cell_living_neighbors(in, x, y);
             if (world_cell_alive(in, x, y)) {
-                out.cells[x][y] = ((n == 2) || (n == 3));
+                world_cell_set(out, x, y, (n == 2) || (n == 3));
             } else {
-                out.cells[x][y] = (n == 3);
+                world_cell_set(out, x, y, n == 3);
             }
         }
     }
