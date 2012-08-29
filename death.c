@@ -1,7 +1,6 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -11,37 +10,30 @@ int main(void) {
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
         40, 40, 1024, 512, 3, BlackPixel(display, screen), WhitePixel(display, screen));
 
-    enum { unmapped, splash, quit, playing, dead } state = unmapped;
+    enum { splash, quit, playing, dead } state = splash;
+    short up, down;
 
-    XSelectInput(display, window, ExposureMask | KeyPressMask | StructureNotifyMask);
+    XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
 
     while (state != quit) {
-        struct timeval timeout;
-        timeout.tv_sec  = 0;
-        timeout.tv_usec = 1000;
-        select(0, 0, 0, 0, &timeout);
+        usleep(16666);
 
+        /* X11 events */
         if (XPending(display)) {
             XEvent event;
             XNextEvent(display, &event);
 
             switch (state) {
-                case unmapped:
-                    if (event.type == MapNotify) {
-                        state = splash;
-                    }
-                    break;
                 case splash:
                     switch (event.type) {
                         case KeyPress:
-                            XClearWindow(display, window);
-                            XFlush(display);
                             switch ((long)XLookupKeysym(&event.xkey, 0)) {
                                 case XK_q:
                                     state = quit;
                                     break;
                                 default:
+                                    up = down = 0;
                                     state = playing;
                                     break;
                             };
@@ -51,7 +43,27 @@ int main(void) {
                 case playing:
                     switch (event.type) {
                         case KeyPress:
-                            state = dead;
+                            switch ((long)XLookupKeysym(&event.xkey, 0)) {
+                                case XK_Up:
+                                    up = 1;
+                                    break;
+                                case XK_Down:
+                                    down = 1;
+                                    break;
+                                case XK_q:
+                                    state = dead;
+                                    break;
+                            };
+                            break;
+                        case KeyRelease:
+                            switch ((long)XLookupKeysym(&event.xkey, 0)) {
+                                case XK_Up:
+                                    up = 0;
+                                    break;
+                                case XK_Down:
+                                    down = 0;
+                                    break;
+                            };
                             break;
                     };
                     break;
@@ -68,24 +80,32 @@ int main(void) {
         }
 
         /* repaint */
-        if (state != unmapped) {
-            XClearWindow(display, window);
-            switch (state) {
-                case splash: {
-                    char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
-                    XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash, strlen(splash));
-                    break;
+        XClearWindow(display, window);
+        switch (state) {
+            case splash: {
+                char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
+                XDrawString(display, window, DefaultGC(display, screen), 10, 50, splash, strlen(splash));
+                break;
+            }
+            case playing:
+                if (up) {
+                    char *upmsg = "up";
+                    XDrawString(display, window, DefaultGC(display, screen), 10, 50, upmsg, strlen(upmsg));
                 }
-                case dead: {
-                    char *death = "you died.";
-                    XDrawString(display, window, DefaultGC(display, screen), 10, 50, death, strlen(death));
-                    break;
+                if (down) {
+                    char *downmsg = "down";
+                    XDrawString(display, window, DefaultGC(display, screen), 10, 80, downmsg, strlen(downmsg));
                 }
-                default:
-                    break;
-            };
-            XFlush(display);
-        }
+                break;
+            case dead: {
+                char *death = "you died.";
+                XDrawString(display, window, DefaultGC(display, screen), 10, 50, death, strlen(death));
+                break;
+            }
+            default:
+                break;
+        };
+        XFlush(display);
     }
 
     XCloseDisplay(display);
