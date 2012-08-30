@@ -9,11 +9,27 @@
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
 #define DIM 80
+#define WINDOW_WIDTH        1024
+#define WINDOW_HEIGHT       512
+#define CELL_SIZE           20
+#define PLAYER_WIDTH        20
+#define PLAYER_HEIGHT       16
+#define PLAYER_LEFT         100
+#define PLAYER_TOP          248
+#define FRAME_RATE          60
+#define LIFE_RATE           4
+#define CONTROL_SENSITIVITY 2
+#define SPEED_START         1
+#define SPEED_ZOOM          0.005
+
 #define world_cell_alive(w, x, y)  (w)->cells[(x)][(y)]
 #define world_cell_set(w, x, y, b) (w)->cells[(x)][(y)] = (b)
 
 typedef struct {
     short cells[DIM][DIM];
+    int tick;
+    int dx, dy;
+    float speed;
 } world;
 
 world world_new(void) {
@@ -25,6 +41,11 @@ world world_new(void) {
             world_cell_set(&out, x, y, (rand() % 8) == 1);
         }
     }
+
+    out.tick  = 0;
+    out.dx    = 0;
+    out.dy    = 0;
+    out.speed = SPEED_START;
 
     return out;
 }
@@ -67,6 +88,27 @@ world world_step(world *in) {
     return out;
 }
 
+world world_tick(world *in, state game_state) {
+    world out;
+
+    if (in->tick == 0) {
+        out = world_step(in);
+    }
+    out.tick = (in->tick + 1) % (FRAME_RATE / LIFE_RATE);
+    out.speed = in->speed + SPEED_ZOOM;
+    out.dx = in->dx + out.speed;
+    out.dy = in->dy;
+
+    if (game_state == playing_up) {
+        out.dy = in->dy - CONTROL_SENSITIVITY;
+    }
+    if (game_state == playing_down) {
+        out.dy = in->dy + CONTROL_SENSITIVITY;
+    }
+
+    return out;
+}
+
 state event_handler(state in, XEvent event) {
     switch (event.type) {
         case KeyPress:
@@ -104,24 +146,8 @@ state event_handler(state in, XEvent event) {
     return in;
 }
 
-#define WINDOW_WIDTH        1024
-#define WINDOW_HEIGHT       512
-#define CELL_SIZE           20
-#define PLAYER_WIDTH        20
-#define PLAYER_HEIGHT       16
-#define PLAYER_LEFT         100
-#define PLAYER_TOP          248
-#define FRAME_RATE          60
-#define LIFE_RATE           4
-#define CONTROL_SENSITIVITY 2
-#define SPEED_START         1
-#define SPEED_ZOOM          0.005
-
 #ifndef _TESTING
 int main(void) {
-    short tick = 0;
-    int dx = 0, dy = 0;
-    float speed = SPEED_START;
     Display *display = XOpenDisplay(NULL);
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
@@ -180,21 +206,8 @@ int main(void) {
             game_state = event_handler(game_state, event);
         }
 
-        /* game */
-        if (game_state == playing_up) {
-            dy = dy - CONTROL_SENSITIVITY;
-        }
-        if (game_state == playing_down) {
-            dy = dy + CONTROL_SENSITIVITY;
-        }
-        if ((game_state == playing_nil) || (game_state == playing_up) || (game_state == playing_down)) {
-            if (tick == 0) {
-                the_world = world_step(&the_world);
-            }
-            tick = (tick + 1) % (FRAME_RATE / LIFE_RATE);
-            speed = speed + SPEED_ZOOM;
-            dx = dx + speed;
-        }
+        /* tick the game */
+        the_world = world_tick(&the_world, game_state);
 
         /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
@@ -214,9 +227,9 @@ int main(void) {
                 XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_LEFT, PLAYER_TOP);
 
                 for (y = 0; y < DIM; ++y) {
-                    int oy = y*CELL_SIZE-dy;
+                    int oy = y*CELL_SIZE-the_world.dy;
                     for (x = 0; x < DIM; ++x) {
-                        int ox = x*CELL_SIZE-dx;
+                        int ox = x*CELL_SIZE-the_world.dx;
                         if (world_cell_alive(&the_world, x, y)) {
                             XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                         }

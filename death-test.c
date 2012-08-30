@@ -1,4 +1,5 @@
 #include <check.h>
+#include <float.h>
 
 #define _TESTING
 #include "death.c"
@@ -118,7 +119,11 @@ short basic_world_assertions(world *in) {
 START_TEST (test_world_new)
 {
     world w = world_new();
-    basic_world_assertions(&w);
+    fail_unless(basic_world_assertions(&w));
+
+    fail_unless(w.dx == 0);
+    fail_unless(w.dy == 0);
+    fail_unless(w.speed == SPEED_START);
 }
 END_TEST
 
@@ -275,6 +280,28 @@ START_TEST (test_world_step_glider)
 }
 END_TEST
 
+START_TEST (test_world_tick)
+{
+    int i;
+    world w = world_new();
+
+    for (i = 0; i < 1200; ++i) {
+        world wnext = world_tick(&w, playing_nil);
+        if (w.tick == 0) {
+            /* step, so worlds should no longer be equal */
+            fail_unless(! worlds_are_equal(&w, &wnext));
+        } else {
+            /* no step, so worlds should be equal */
+            fail_unless(worlds_are_equal(&w, &wnext));
+        }
+        fail_unless((wnext.speed - (w.speed + SPEED_ZOOM)) < FLT_EPSILON);
+        fail_unless(wnext.dy == w.dy);
+        fail_unless(wnext.dx == (int)(w.dx + wnext.speed));
+        w = wnext;
+    }
+}
+END_TEST
+
 int main(void) {
     TCase *tc;
     Suite *suite;
@@ -288,6 +315,7 @@ int main(void) {
     tcase_add_test(tc, test_world_step_beehive);
     tcase_add_test(tc, test_world_step_blinker);
     tcase_add_test(tc, test_world_step_glider);
+    tcase_add_test(tc, test_world_tick);
 
     suite = suite_create("death");
     suite_add_tcase(suite, tc);
