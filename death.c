@@ -6,14 +6,15 @@
 #include <unistd.h>
 #include <time.h>
 
-#define DIM 120
+#define DIM 80
 
 typedef struct {
-    unsigned char cells[DIM * DIM];
+    unsigned char cells[(DIM * DIM) / 8];
 } world;
 
-#define world_cell_alive(w, x, y)  (/*printf("%d,%d\n", x, y),*/(w)->cells[(x)*(DIM)+(y)])
-#define world_cell_set(w, x, y, b) (/*printf("%d,%d,%d\n", x, y, b),*/(w)->cells[(x)*(DIM)+(y)] = (b))
+#define _o(x, y) ((x)*DIM+(y))
+#define world_cell_alive(w, x, y)  (((w)->cells[_o(x,y) / 8] & (1 << (_o(x,y) % 8))) ? 1 : 0)
+#define world_cell_set(w, x, y, b) (b) ? ((w)->cells[_o(x,y) / 8] |= (1 << (_o(x,y) % 8))) : ((w)->cells[_o(x,y) / 8] &= ~(1 << (_o(x,y) % 8)))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
@@ -183,8 +184,8 @@ short game_collision(game *in) {
     return 0;
 }
 
-#define WINDOW_WIDTH        1024
-#define WINDOW_HEIGHT       512
+#define WINDOW_WIDTH  640
+#define WINDOW_HEIGHT 480
 
 #ifndef _TESTING
 int main(void) {
