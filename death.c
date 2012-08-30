@@ -8,7 +8,7 @@
 
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-#define DIM 80
+#define DIM                 80
 #define WINDOW_WIDTH        1024
 #define WINDOW_HEIGHT       512
 #define CELL_SIZE           20
