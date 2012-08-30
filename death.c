@@ -104,18 +104,24 @@ state event_handler(state in, XEvent event) {
     return in;
 }
 
-#define WINDOW_WIDTH  1024
-#define WINDOW_HEIGHT 512
-#define CELL_SIZE     20
-#define PLAYER_WIDTH  20
-#define PLAYER_HEIGHT 16
-#define PLAYER_LEFT   100
-#define PLAYER_TOP    248
+#define WINDOW_WIDTH        1024
+#define WINDOW_HEIGHT       512
+#define CELL_SIZE           20
+#define PLAYER_WIDTH        20
+#define PLAYER_HEIGHT       16
+#define PLAYER_LEFT         100
+#define PLAYER_TOP          248
+#define FRAME_RATE          60
+#define LIFE_RATE           4
+#define CONTROL_SENSITIVITY 2
+#define SPEED_START         1
+#define SPEED_ZOOM          0.005
 
 #ifndef _TESTING
 int main(void) {
     short tick = 0;
     int dx = 0, dy = 0;
+    float speed = SPEED_START;
     Display *display = XOpenDisplay(NULL);
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
@@ -164,7 +170,7 @@ int main(void) {
     XChangeGC(display, gc, GCForeground, &gcv_black);
 
     while (game_state != quit) {
-        usleep(16666);
+        usleep(1000000 / FRAME_RATE);
 
         /* X11 events */
         while (XPending(display)) {
@@ -176,16 +182,17 @@ int main(void) {
 
         /* game */
         if (game_state == playing_up) {
-            dy = dy - 2;
+            dy = dy - CONTROL_SENSITIVITY;
         }
         if (game_state == playing_down) {
-            dy = dy + 2;
+            dy = dy + CONTROL_SENSITIVITY;
         }
         if ((game_state == playing_nil) || (game_state == playing_up) || (game_state == playing_down)) {
             if (tick == 0) {
                 the_world = world_step(&the_world);
             }
-            tick = (tick + 1) % 30;
+            tick = (tick + 1) % (FRAME_RATE / LIFE_RATE);
+            speed = speed + SPEED_ZOOM;
         }
 
         /* repaint into buffer */
@@ -214,7 +221,7 @@ int main(void) {
                         }
                     }
                 }
-                dx = dx + 1;
+                dx = dx + speed;
                 break;
             }
             case dead: {
