@@ -118,12 +118,11 @@ short basic_world_assertions(world *in) {
 
 START_TEST (test_game_new)
 {
-    game g = game_new();
+    game g = game_transition(NULL, splash);
     fail_unless(basic_world_assertions(&g.w));
 
     fail_unless(g.dx == 0);
     fail_unless(g.dy == 0);
-    fail_unless(g.speed == SPEED_START);
 }
 END_TEST
 
@@ -283,9 +282,7 @@ END_TEST
 START_TEST (test_game_tick)
 {
     int i;
-    game g = game_new();
-
-    g.s = playing_nil;
+    game g = game_transition(NULL, playing_nil);
     for (i = 0; i < 1200; ++i) {
         game gnext = game_tick(&g);
         if (g.tick == 0) {

@@ -6,62 +6,20 @@
 #include <unistd.h>
 #include <time.h>
 
-typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
-
-#define DIM                 80
-#define WINDOW_WIDTH        1024
-#define WINDOW_HEIGHT       512
-#define CELL_SIZE           20
-#define PLAYER_WIDTH        20
-#define PLAYER_HEIGHT       16
-#define PLAYER_LEFT         100
-#define PLAYER_TOP          248
-#define FRAME_RATE          60
-#define LIFE_RATE           2
-#define CONTROL_SENSITIVITY 2
-#define SPEED_START         1
-#define SPEED_ZOOM          0.005
-
-#define world_cell_alive(w, x, y)  (/*printf("%d,%d\n", x, y),*/(w)->cells[(x)*(DIM)+(y)])
-#define world_cell_set(w, x, y, b) (/*printf("%d,%d,%d\n", x, y, b),*/(w)->cells[(x)*(DIM)+(y)] = (b))
+#define DIM 120
 
 typedef struct {
     unsigned char cells[DIM * DIM];
 } world;
 
-typedef struct {
-    world w;
-    state s;
-    int tick;
-    int dx, dy;
-    float speed;
-} game;
-
-game game_new(void) {
-    int x, y;
-    game out;
-
-    for (x = 0; x < DIM; ++x) {
-        for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out.w, x, y, (rand() % 8) == 1);
-        }
-    }
-
-    out.tick  = 0;
-    out.dx    = 0;
-    out.dy    = 0;
-    out.speed = SPEED_START;
-    out.s     = splash;
-
-    return out;
-}
+#define world_cell_alive(w, x, y)  (/*printf("%d,%d\n", x, y),*/(w)->cells[(x)*(DIM)+(y)])
+#define world_cell_set(w, x, y, b) (/*printf("%d,%d,%d\n", x, y, b),*/(w)->cells[(x)*(DIM)+(y)] = (b))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
-    short dx, dy;
-    for (dx = -1; dx <= 1; ++dx) {
+    for (int dx = -1; dx <= 1; ++dx) {
         if ((x+dx >= 0) && (x+dx < DIM)) {
-            for (dy = -1; dy <= 1; ++dy) {
+            for (int dy = -1; dy <= 1; ++dy) {
                 if ((y+dy >= 0) && (y+dy < DIM)) {
                     if (! ((dx == 0) && (dy == 0))) {
                         n += world_cell_alive(in, x+dx, y+dy);
@@ -94,43 +52,9 @@ world world_step(world *in) {
     return out;
 }
 
-game game_tick(game *in) {
-    game out;
+typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
-    memcpy(&out.w, &in->w, sizeof(world));
-    if (in->tick == 0) {
-        out.w = world_step(&in->w);
-    }
-    out.tick = (in->tick + 1) % (FRAME_RATE / LIFE_RATE);
-    out.speed = in->speed + SPEED_ZOOM;
-    out.dx = in->dx + out.speed;
-    out.dy = in->dy;
-    out.s = in->s;
-
-    if (in->s == playing_up) {
-        out.dy = in->dy - CONTROL_SENSITIVITY;
-    }
-    if (in->s == playing_down) {
-        out.dy = in->dy + CONTROL_SENSITIVITY;
-    }
-
-    return out;
-}
-
-short game_collision(game *in) {
-    int ox, oy;
-    for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
-        for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
-            int x, y;
-            x = ox / CELL_SIZE;
-            y = oy / CELL_SIZE;
-            if (world_cell_alive(&in->w, x, y)) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
+#define state_playing(s) (((s) == playing_nil) || ((s) == playing_up) || ((s) == playing_down))
 
 state event_handler(state in, XEvent event) {
     switch (event.type) {
@@ -169,6 +93,99 @@ state event_handler(state in, XEvent event) {
     return in;
 }
 
+#define CELL_SIZE           20
+#define PLAYER_WIDTH        20
+#define PLAYER_HEIGHT       16
+#define PLAYER_LEFT         100
+#define PLAYER_TOP          248
+#define FRAME_RATE          60
+#define LIFE_RATE           2
+#define CONTROL_SENSITIVITY 2
+#define SPEED_START         1
+#define SPEED_ZOOM          0.005
+
+typedef struct {
+    world w;
+    state s;
+    int tick;
+    int dx, dy;
+    float life_rate;
+    float speed;
+    float acceleration;
+} game;
+
+game game_transition(game *in, state s) {
+    game out;
+    if (in) {
+        memcpy(&out, in, sizeof(game));
+        if ((in->s == s) || (state_playing(in->s) && state_playing(s))) {
+            out.s = s;
+            return out;
+        }
+    }
+
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
+            world_cell_set(&out.w, x, y, (rand() % 8) == 1);
+        }
+    }
+
+    out.tick  = 0;
+    out.dx    = 0;
+    out.dy    = 0;
+    out.s     = s;
+    if (state_playing(s)) {
+        out.life_rate    = LIFE_RATE;
+        out.speed        = SPEED_START;
+        out.acceleration = SPEED_ZOOM;
+    } else {
+        out.life_rate    = 0.25;
+        out.speed        = 0;
+        out.acceleration = 0;
+    }
+
+    return out;
+}
+
+game game_tick(game *in) {
+    game out;
+
+    memcpy(&out, in, sizeof(game));
+    if (in->tick == 0) {
+        out.w = world_step(&in->w);
+    }
+    out.tick = (in->tick + 1) % (int)(FRAME_RATE / out.life_rate);
+    out.speed = in->speed + out.acceleration;
+    out.dx = in->dx + out.speed;
+
+    if (in->s == playing_up) {
+        out.dy = in->dy - CONTROL_SENSITIVITY;
+    }
+    if (in->s == playing_down) {
+        out.dy = in->dy + CONTROL_SENSITIVITY;
+    }
+
+    return out;
+}
+
+short game_collision(game *in) {
+    int ox, oy;
+    for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
+        for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
+            int x, y;
+            x = ox / CELL_SIZE;
+            y = oy / CELL_SIZE;
+            if (world_cell_alive(&in->w, x, y)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+#define WINDOW_WIDTH        1024
+#define WINDOW_HEIGHT       512
+
 #ifndef _TESTING
 int main(void) {
     Display *display = XOpenDisplay(NULL);
@@ -184,7 +201,7 @@ int main(void) {
     game the_game;
 
     srand(time(0));
-    the_game = game_new();
+    the_game = game_transition(NULL, splash);
 
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
@@ -217,59 +234,43 @@ int main(void) {
     XFillRectangle(display, player, gc, 16, 12, 4, 4);
     XChangeGC(display, gc, GCForeground, &gcv_black);
 
-    while (the_game.s != quit) {
+    for (;;) {
         usleep(1000000 / FRAME_RATE);
 
         /* X11 events */
         while (XPending(display)) {
             XEvent event;
             XNextEvent(display, &event);
+    
+            the_game = game_transition(&the_game, event_handler(the_game.s, event));
+        }
 
-            the_game.s = event_handler(the_game.s, event);
+        if (the_game.s == quit) {
+            break;
         }
 
         /* tick the game */
         the_game = game_tick(&the_game);
         if (game_collision(&the_game)) {
-            the_game.s = dead;
+            the_game = game_transition(&the_game, dead);
         }
 
         /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
         XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        XChangeGC(display, gc, GCForeground, &gcv_black);
-        switch (the_game.s) {
-            case splash: {
-                char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
-                XDrawString(display, pixmap, gc, 10, 50, splash, strlen(splash));
-                break;
-            }
-            case playing_nil:
-            case playing_up:
-            case playing_down: {
-                int x, y;
-
-                XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_LEFT, PLAYER_TOP);
-
-                for (y = 0; y < DIM; ++y) {
-                    int oy = y*CELL_SIZE-the_game.dy;
-                    for (x = 0; x < DIM; ++x) {
-                        int ox = x*CELL_SIZE-the_game.dx;
-                        if (world_cell_alive(&the_game.w, x, y)) {
-                            XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
-                        }
-                    }
+        for (int y = 0; y < DIM; ++y) {
+            int oy = y*CELL_SIZE-the_game.dy;
+            for (int x = 0; x < DIM; ++x) {
+                int ox = x*CELL_SIZE-the_game.dx;
+                if (world_cell_alive(&the_game.w, x, y)) {
+                    XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                 }
-                break;
             }
-            case dead: {
-                char *death = "you died.";
-                XDrawString(display, pixmap, gc, 10, 50, death, strlen(death));
-                break;
-            }
-            default:
-                break;
-        };
+        }
+        if (state_playing(the_game.s)) {
+            XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT,
+                PLAYER_LEFT, PLAYER_TOP);
+        }
 
         /* copy buffer & flush */
         XCopyArea(display, pixmap, window, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);

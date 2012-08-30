@@ -6,7 +6,7 @@ TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c
 
 CC      := gcc
-CFLAGS  := -ggdb -std=c89 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -O3
+CFLAGS  := -ggdb -std=c99 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -O3
 LDFLAGS := -lX11
 
 .PHONY: all

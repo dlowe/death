@@ -1,1 +1,1 @@
-cc -o prog prog.c -L/usr/X11R6/lib -I/usr/X11R6/include -lX11
+cc -o prog prog.c -std=c99 -L/usr/X11R6/lib -I/usr/X11R6/include -lX11
