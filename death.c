@@ -104,6 +104,14 @@ state event_handler(state in, XEvent event) {
     return in;
 }
 
+#define WINDOW_WIDTH  1024
+#define WINDOW_HEIGHT 512
+#define CELL_SIZE     20
+#define PLAYER_WIDTH  20
+#define PLAYER_HEIGHT 16
+#define PLAYER_LEFT   100
+#define PLAYER_TOP    248
+
 #ifndef _TESTING
 int main(void) {
     short tick = 0;
@@ -111,10 +119,10 @@ int main(void) {
     Display *display = XOpenDisplay(NULL);
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
-        40, 40, 1024, 512, 3, BlackPixel(display, screen), WhitePixel(display, screen));
-    Pixmap pixmap    = XCreatePixmap(display, window, 1024, 512, DefaultDepth(display, screen));
-    Pixmap player    = XCreatePixmap(display, window, 20, 16, DefaultDepth(display, screen));
-    Pixmap cell      = XCreatePixmap(display, window, 20, 20, DefaultDepth(display, screen));
+        40, 40, WINDOW_WIDTH, WINDOW_HEIGHT, 3, BlackPixel(display, screen), WhitePixel(display, screen));
+    Pixmap pixmap    = XCreatePixmap(display, window, WINDOW_WIDTH, WINDOW_HEIGHT, DefaultDepth(display, screen));
+    Pixmap player    = XCreatePixmap(display, window, PLAYER_WIDTH, PLAYER_HEIGHT, DefaultDepth(display, screen));
+    Pixmap cell      = XCreatePixmap(display, window, CELL_SIZE, CELL_SIZE, DefaultDepth(display, screen));
     GC gc            = DefaultGC(display, screen);
     XGCValues gcv_white, gcv_black, gcv_green;
 
@@ -132,17 +140,17 @@ int main(void) {
 
     /* build a sprite for cells */
     XChangeGC(display, gc, GCForeground, &gcv_black);
-    XFillRectangle(display, cell, gc, 0, 0, 20, 20);
+    XFillRectangle(display, cell, gc, 0, 0, CELL_SIZE, CELL_SIZE);
     XChangeGC(display, gc, GCForeground, &gcv_white);
     XDrawPoint(display, cell, gc, 0, 0);
-    XDrawPoint(display, cell, gc, 0, 19);
-    XDrawPoint(display, cell, gc, 19, 0);
-    XDrawPoint(display, cell, gc, 19, 19);
+    XDrawPoint(display, cell, gc, 0, CELL_SIZE-1);
+    XDrawPoint(display, cell, gc, CELL_SIZE-1, 0);
+    XDrawPoint(display, cell, gc, CELL_SIZE-1, CELL_SIZE-1);
     XChangeGC(display, gc, GCForeground, &gcv_black);
 
     /* build a player sprite */
     XChangeGC(display, gc, GCForeground, &gcv_white);
-    XFillRectangle(display, player, gc, 0, 0, 20, 16);
+    XFillRectangle(display, player, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
     XChangeGC(display, gc, GCForeground, &gcv_green);
     XFillRectangle(display, player, gc,  0,  0, 4, 4);
     XFillRectangle(display, player, gc,  0,  8, 4, 4);
@@ -182,7 +190,7 @@ int main(void) {
 
         /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
-        XFillRectangle(display, pixmap, gc, 0, 0, 1024, 512);
+        XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         XChangeGC(display, gc, GCForeground, &gcv_black);
         switch (game_state) {
             case splash: {
@@ -195,14 +203,14 @@ int main(void) {
             case playing_down: {
                 int x, y;
 
-                XCopyArea(display, player, pixmap, gc, 0, 0, 20, 16, 100, 248);
+                XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_LEFT, PLAYER_TOP);
 
                 for (y = 0; y < DIM; ++y) {
                     for (x = 0; x < DIM; ++x) {
                         if (world_cell_alive(&the_world, x, y)) {
-                            int ox = x*20-dx;
-                            int oy = y*20-dy;
-                            XCopyArea(display, cell, pixmap, gc, 0, 0, 20, 20, ox, oy);
+                            int ox = x*CELL_SIZE-dx;
+                            int oy = y*CELL_SIZE-dy;
+                            XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                         }
                     }
                 }
@@ -219,7 +227,7 @@ int main(void) {
         };
 
         /* copy buffer & flush */
-        XCopyArea(display, pixmap, window, gc, 0, 0, 1024, 512, 0, 0);
+        XCopyArea(display, pixmap, window, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
         XFlush(display);
     }
 
