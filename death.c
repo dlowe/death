@@ -17,7 +17,7 @@ typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state
 #define PLAYER_LEFT         100
 #define PLAYER_TOP          248
 #define FRAME_RATE          60
-#define LIFE_RATE           4
+#define LIFE_RATE           2
 #define CONTROL_SENSITIVITY 2
 #define SPEED_START         1
 #define SPEED_ZOOM          0.005
@@ -107,6 +107,21 @@ world world_tick(world *in, state game_state) {
     }
 
     return out;
+}
+
+short world_collision(world *in) {
+    int ox, oy;
+    for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
+        for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
+            int x, y;
+            x = ox / CELL_SIZE;
+            y = oy / CELL_SIZE;
+            if (world_cell_alive(in, x, y)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 state event_handler(state in, XEvent event) {
@@ -208,6 +223,9 @@ int main(void) {
 
         /* tick the game */
         the_world = world_tick(&the_world, game_state);
+        if (world_collision(&the_world)) {
+            game_state = dead;
+        }
 
         /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
