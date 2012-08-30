@@ -22,23 +22,28 @@ typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state
 #define SPEED_START         1
 #define SPEED_ZOOM          0.005
 
-#define world_cell_alive(w, x, y)  (w)->cells[(x)][(y)]
-#define world_cell_set(w, x, y, b) (w)->cells[(x)][(y)] = (b)
+#define world_cell_alive(w, x, y)  (/*printf("%d,%d\n", x, y),*/(w)->cells[(x)*(DIM)+(y)])
+#define world_cell_set(w, x, y, b) (/*printf("%d,%d,%d\n", x, y, b),*/(w)->cells[(x)*(DIM)+(y)] = (b))
 
 typedef struct {
-    short cells[DIM][DIM];
+    unsigned char cells[DIM * DIM];
+} world;
+
+typedef struct {
+    world w;
+    state s;
     int tick;
     int dx, dy;
     float speed;
-} world;
+} game;
 
-world world_new(void) {
+game game_new(void) {
     int x, y;
-    world out;
+    game out;
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, x, y, (rand() % 8) == 1);
+            world_cell_set(&out.w, x, y, (rand() % 8) == 1);
         }
     }
 
@@ -46,6 +51,7 @@ world world_new(void) {
     out.dx    = 0;
     out.dy    = 0;
     out.speed = SPEED_START;
+    out.s     = splash;
 
     return out;
 }
@@ -88,35 +94,37 @@ world world_step(world *in) {
     return out;
 }
 
-world world_tick(world *in, state game_state) {
-    world out;
+game game_tick(game *in) {
+    game out;
 
+    memcpy(&out.w, &in->w, sizeof(world));
     if (in->tick == 0) {
-        out = world_step(in);
+        out.w = world_step(&in->w);
     }
     out.tick = (in->tick + 1) % (FRAME_RATE / LIFE_RATE);
     out.speed = in->speed + SPEED_ZOOM;
     out.dx = in->dx + out.speed;
     out.dy = in->dy;
+    out.s = in->s;
 
-    if (game_state == playing_up) {
+    if (in->s == playing_up) {
         out.dy = in->dy - CONTROL_SENSITIVITY;
     }
-    if (game_state == playing_down) {
+    if (in->s == playing_down) {
         out.dy = in->dy + CONTROL_SENSITIVITY;
     }
 
     return out;
 }
 
-short world_collision(world *in) {
+short game_collision(game *in) {
     int ox, oy;
     for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
         for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
             int x, y;
             x = ox / CELL_SIZE;
             y = oy / CELL_SIZE;
-            if (world_cell_alive(in, x, y)) {
+            if (world_cell_alive(&in->w, x, y)) {
                 return 1;
             }
         }
@@ -173,11 +181,10 @@ int main(void) {
     GC gc            = DefaultGC(display, screen);
     XGCValues gcv_white, gcv_black, gcv_green;
 
-    state game_state = splash;
-    world the_world;
+    game the_game;
 
     srand(time(0));
-    the_world = world_new();
+    the_game = game_new();
 
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
@@ -210,7 +217,7 @@ int main(void) {
     XFillRectangle(display, player, gc, 16, 12, 4, 4);
     XChangeGC(display, gc, GCForeground, &gcv_black);
 
-    while (game_state != quit) {
+    while (the_game.s != quit) {
         usleep(1000000 / FRAME_RATE);
 
         /* X11 events */
@@ -218,20 +225,20 @@ int main(void) {
             XEvent event;
             XNextEvent(display, &event);
 
-            game_state = event_handler(game_state, event);
+            the_game.s = event_handler(the_game.s, event);
         }
 
         /* tick the game */
-        the_world = world_tick(&the_world, game_state);
-        if (world_collision(&the_world)) {
-            game_state = dead;
+        the_game = game_tick(&the_game);
+        if (game_collision(&the_game)) {
+            the_game.s = dead;
         }
 
         /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
         XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         XChangeGC(display, gc, GCForeground, &gcv_black);
-        switch (game_state) {
+        switch (the_game.s) {
             case splash: {
                 char *splash = "conway's game of DEATH (controls: q, up-arrow, down-arrow)";
                 XDrawString(display, pixmap, gc, 10, 50, splash, strlen(splash));
@@ -245,10 +252,10 @@ int main(void) {
                 XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_LEFT, PLAYER_TOP);
 
                 for (y = 0; y < DIM; ++y) {
-                    int oy = y*CELL_SIZE-the_world.dy;
+                    int oy = y*CELL_SIZE-the_game.dy;
                     for (x = 0; x < DIM; ++x) {
-                        int ox = x*CELL_SIZE-the_world.dx;
-                        if (world_cell_alive(&the_world, x, y)) {
+                        int ox = x*CELL_SIZE-the_game.dx;
+                        if (world_cell_alive(&the_game.w, x, y)) {
                             XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                         }
                     }

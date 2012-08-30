@@ -116,14 +116,14 @@ short basic_world_assertions(world *in) {
     return 1;
 }
 
-START_TEST (test_world_new)
+START_TEST (test_game_new)
 {
-    world w = world_new();
-    fail_unless(basic_world_assertions(&w));
+    game g = game_new();
+    fail_unless(basic_world_assertions(&g.w));
 
-    fail_unless(w.dx == 0);
-    fail_unless(w.dy == 0);
-    fail_unless(w.speed == SPEED_START);
+    fail_unless(g.dx == 0);
+    fail_unless(g.dy == 0);
+    fail_unless(g.speed == SPEED_START);
 }
 END_TEST
 
@@ -280,24 +280,26 @@ START_TEST (test_world_step_glider)
 }
 END_TEST
 
-START_TEST (test_world_tick)
+START_TEST (test_game_tick)
 {
     int i;
-    world w = world_new();
+    game g = game_new();
 
+    g.s = playing_nil;
     for (i = 0; i < 1200; ++i) {
-        world wnext = world_tick(&w, playing_nil);
-        if (w.tick == 0) {
+        game gnext = game_tick(&g);
+        if (g.tick == 0) {
             /* step, so worlds should no longer be equal */
-            fail_unless(! worlds_are_equal(&w, &wnext));
+            fail_unless(! worlds_are_equal(&g.w, &gnext.w));
         } else {
             /* no step, so worlds should be equal */
-            fail_unless(worlds_are_equal(&w, &wnext));
+            fail_unless(worlds_are_equal(&g.w, &gnext.w));
         }
-        fail_unless((wnext.speed - (w.speed + SPEED_ZOOM)) < FLT_EPSILON);
-        fail_unless(wnext.dy == w.dy);
-        fail_unless(wnext.dx == (int)(w.dx + wnext.speed));
-        w = wnext;
+        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < FLT_EPSILON);
+        fail_unless(gnext.dy == g.dy);
+        fail_unless(gnext.dx == (int)(g.dx + gnext.speed));
+        fail_unless(gnext.s == g.s);
+        g = gnext;
     }
 }
 END_TEST
@@ -310,12 +312,12 @@ int main(void) {
     
     tc = tcase_create("death");
     tcase_add_test(tc, test_event_handler);
-    tcase_add_test(tc, test_world_new);
+    tcase_add_test(tc, test_game_new);
     tcase_add_test(tc, test_world_step_block);
     tcase_add_test(tc, test_world_step_beehive);
     tcase_add_test(tc, test_world_step_blinker);
     tcase_add_test(tc, test_world_step_glider);
-    tcase_add_test(tc, test_world_tick);
+    tcase_add_test(tc, test_game_tick);
 
     suite = suite_create("death");
     suite_add_tcase(suite, tc);
