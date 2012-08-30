@@ -193,6 +193,7 @@ int main(void) {
             }
             tick = (tick + 1) % (FRAME_RATE / LIFE_RATE);
             speed = speed + SPEED_ZOOM;
+            dx = dx + speed;
         }
 
         /* repaint into buffer */
@@ -213,15 +214,14 @@ int main(void) {
                 XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_LEFT, PLAYER_TOP);
 
                 for (y = 0; y < DIM; ++y) {
+                    int oy = y*CELL_SIZE-dy;
                     for (x = 0; x < DIM; ++x) {
+                        int ox = x*CELL_SIZE-dx;
                         if (world_cell_alive(&the_world, x, y)) {
-                            int ox = x*CELL_SIZE-dx;
-                            int oy = y*CELL_SIZE-dy;
                             XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                         }
                     }
                 }
-                dx = dx + speed;
                 break;
             }
             case dead: {
