@@ -1,5 +1,5 @@
 #include <check.h>
-#include <float.h>
+#include <stdio.h>
 
 #define _TESTING
 #include "death.c"
@@ -325,7 +325,7 @@ START_TEST (test_game_tick)
             /* no step, so worlds should be equal */
             fail_unless(worlds_are_equal(&g.w, &gnext.w));
         }
-        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < FLT_EPSILON);
+        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < 0.00001);
         fail_unless(gnext.dy == g.dy);
         fail_unless(gnext.dx == (int)(g.dx + gnext.speed));
         fail_unless(gnext.s == g.s);

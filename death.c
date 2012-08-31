@@ -1,7 +1,6 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
@@ -37,10 +36,9 @@ short world_cell_living_neighbors(world *in, short x, short y) {
 
 world world_step(world *in) {
     world out;
-    int x, y;
 
-    for (x = 0; x < DIM; ++x) {
-        for (y = 0; y < DIM; ++y) {
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
             if (world_cell_alive(in, x, y)) {
                 world_cell_set(&out, x, y, (n == 2) || (n == 3));
@@ -115,15 +113,15 @@ world str_to_world(short width, char *in) {
 }
 
 #define CELL_SIZE           20
-#define PLAYER_WIDTH        20
-#define PLAYER_HEIGHT       16
+#define PLAYER_LOOP         4
+#define PLAYER_RATE         5
 #define PLAYER_LEFT         100
 #define PLAYER_TOP          248
-#define FRAME_RATE          60
+#define FRAME_RATE          20
 #define LIFE_RATE           2
-#define CONTROL_SENSITIVITY 2
-#define SPEED_START         1
-#define SPEED_ZOOM          0.005
+#define CONTROL_SENSITIVITY 6
+#define SPEED_START         3
+#define SPEED_ZOOM          0.015
 
 typedef struct {
     world w;
@@ -233,8 +231,8 @@ game game_tick(game *in) {
 short game_collision(game *in) {
     if (state_playing(in->s)) {
         int ox, oy;
-        for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
-            for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
+        for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + CELL_SIZE; ++ox) {
+            for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + CELL_SIZE; ++oy) {
                 int x, y;
                 x = ox / CELL_SIZE;
                 y = oy / CELL_SIZE;
@@ -257,10 +255,10 @@ int main(void) {
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
         40, 40, WINDOW_WIDTH, WINDOW_HEIGHT, 3, BlackPixel(display, screen), WhitePixel(display, screen));
     Pixmap pixmap    = XCreatePixmap(display, window, WINDOW_WIDTH, WINDOW_HEIGHT, DefaultDepth(display, screen));
-    Pixmap player    = XCreatePixmap(display, window, PLAYER_WIDTH, PLAYER_HEIGHT, DefaultDepth(display, screen));
-    Pixmap cell      = XCreatePixmap(display, window, CELL_SIZE, CELL_SIZE, DefaultDepth(display, screen));
+    Pixmap sprites   = XCreatePixmap(display, window, CELL_SIZE, CELL_SIZE * (PLAYER_LOOP+1), DefaultDepth(display, screen));
     GC gc            = DefaultGC(display, screen);
     XGCValues gcv_white, gcv_black, gcv_green;
+    int ptick = 0, pn = 0;
 
     game the_game;
 
@@ -275,25 +273,66 @@ int main(void) {
 
     /* build a sprite for cells */
     XChangeGC(display, gc, GCForeground, &gcv_black);
-    XFillRectangle(display, cell, gc, 0, 0, CELL_SIZE, CELL_SIZE);
+    XFillRectangle(display, sprites, gc, 0, 0, CELL_SIZE, CELL_SIZE);
     XChangeGC(display, gc, GCForeground, &gcv_white);
-    XDrawPoint(display, cell, gc, 0, 0);
-    XDrawPoint(display, cell, gc, 0, CELL_SIZE-1);
-    XDrawPoint(display, cell, gc, CELL_SIZE-1, 0);
-    XDrawPoint(display, cell, gc, CELL_SIZE-1, CELL_SIZE-1);
+    XDrawPoint(display, sprites, gc, 0, 0);
+    XDrawPoint(display, sprites, gc, 0, CELL_SIZE-1);
+    XDrawPoint(display, sprites, gc, CELL_SIZE-1, 0);
+    XDrawPoint(display, sprites, gc, CELL_SIZE-1, CELL_SIZE-1);
 
-    /* build a player sprite */
-    XFillRectangle(display, player, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+    /* build player sprites */
+    XFillRectangle(display, sprites, gc, 0, CELL_SIZE, CELL_SIZE, CELL_SIZE*PLAYER_LOOP);
     XChangeGC(display, gc, GCForeground, &gcv_green);
-    XFillRectangle(display, player, gc,  0,  0, 4, 4);
-    XFillRectangle(display, player, gc,  0,  8, 4, 4);
-    XFillRectangle(display, player, gc,  4, 12, 4, 4);
-    XFillRectangle(display, player, gc,  8, 12, 4, 4);
-    XFillRectangle(display, player, gc, 12,  0, 4, 4);
-    XFillRectangle(display, player, gc, 12, 12, 4, 4);
-    XFillRectangle(display, player, gc, 16,  4, 4, 4);
-    XFillRectangle(display, player, gc, 16,  8, 4, 4);
-    XFillRectangle(display, player, gc, 16, 12, 4, 4);
+
+    /* 0 */
+    XFillRectangle(display, sprites, gc,  0, CELL_SIZE+ 0, 4, 4);
+    XFillRectangle(display, sprites, gc,  0, CELL_SIZE+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, CELL_SIZE+12, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, CELL_SIZE+12, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, CELL_SIZE+ 0, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, CELL_SIZE+12, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+12, 4, 4);
+
+    /* 1 */
+    XFillRectangle(display, sprites, gc,  0, (2*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  0, (2*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+16, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+16, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, (2*CELL_SIZE)+ 8, 4, 4);
+
+    /* 2 */
+    XFillRectangle(display, sprites, gc,  0, (3*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  0, (3*CELL_SIZE)+16, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (3*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (3*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (3*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (3*CELL_SIZE)+16, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+12, 4, 4);
+
+    /* 3 */
+    XFillRectangle(display, sprites, gc,  0, (4*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc,  0, (4*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 0, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+ 0, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+ 4, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+ 8, 4, 4);
+    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+12, 4, 4);
+    XFillRectangle(display, sprites, gc, 16, (4*CELL_SIZE)+ 8, 4, 4);
 
     for (;;) {
         usleep(1000000 / FRAME_RATE);
@@ -324,13 +363,17 @@ int main(void) {
             for (int x = 0; x < DIM; ++x) {
                 int ox = x*CELL_SIZE-the_game.dx;
                 if (world_cell_alive(&the_game.w, x, y)) {
-                    XCopyArea(display, cell, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
+                    XCopyArea(display, sprites, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                 }
             }
         }
         if (state_playing(the_game.s)) {
-            XCopyArea(display, player, pixmap, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT,
-                PLAYER_LEFT, PLAYER_TOP);
+            XCopyArea(display, sprites, pixmap, gc, 0, CELL_SIZE*(pn + 1),
+                CELL_SIZE, CELL_SIZE, PLAYER_LEFT, PLAYER_TOP);
+            ptick = (ptick + 1) % (int)(FRAME_RATE / PLAYER_RATE);
+            if (ptick == 0) {
+                pn = (pn + 1) % PLAYER_LOOP;
+            }
         }
 
         /* copy buffer & flush */
