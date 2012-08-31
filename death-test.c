@@ -349,6 +349,11 @@ START_TEST (test_game_tick)
 {
     int i;
     game g = game_transition(NULL, playing_nil);
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
+            world_cell_set(&g.w, x, y, (rand() % 8) == 1);
+        }
+    }
     for (i = 0; i < 120; ++i) {
         game gnext = game_tick(&g);
         if (g.tick == 0) {

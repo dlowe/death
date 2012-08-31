@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define DIM 56
+#define DIM 48
 
 typedef struct {
     unsigned char cells[(DIM * DIM) / 8];
@@ -59,7 +59,7 @@ world world_slide(world *in, short dx, short dy) {
             if ((x-dx >= 0) && (x-dx < DIM) && (y-dy >= 0) && (y-dy < DIM)) {
                 world_cell_set(&out, x, y, world_cell_alive(in, x-dx, y-dy));
             } else {
-                world_cell_set(&out, x, y, 1);
+                world_cell_set(&out, x, y, (rand() % 8) == 1);
             }
         }
     }
@@ -136,12 +136,15 @@ world str_to_world(short width, char *in) {
 #define LIFE_RATE           2
 #define CONTROL_SENSITIVITY 2
 #define SPEED_START         1
-#define SPEED_ZOOM          0.005
+#define SPEED_ZOOM          0.002
+#define WINDOW_WIDTH        640
+#define WINDOW_HEIGHT       480
 
 typedef struct {
     world w;
     state s;
     int tick;
+    int start_dy;
     int dx, dy;
     float life_rate;
     float speed;
@@ -185,7 +188,7 @@ game game_transition(game *in, state s) {
             "______________________"
             "______________________"
             "______________________"
-            "________OO__O__O_O_OOO"
+            "________OO__O__O_O_OOO" 
             "_______O___O_O_OOO_O__"
             "_______OOO_OOO_OOO_OOO"
             "_______O_O_O_O_O_O_O__"
@@ -200,24 +203,26 @@ game game_transition(game *in, state s) {
     } else {
         for (int x = 0; x < DIM; ++x) {
             for (int y = 0; y < DIM; ++y) {
-                world_cell_set(&out.w, x, y, (rand() % 8) == 1);
+                world_cell_set(&out.w, x, y, 0);
             }
         }
     }
 
-    out.tick  = 1;
-    out.dx    = 0;
-    out.dy    = 0;
-    out.s     = s;
     if (state_playing(s)) {
         out.life_rate    = LIFE_RATE;
         out.speed        = SPEED_START;
         out.acceleration = SPEED_ZOOM;
+        out.start_dy     = ((DIM*CELL_SIZE) / 2) - (WINDOW_HEIGHT / 2);
     } else {
         out.life_rate    = 0.5;
         out.speed        = 0;
         out.acceleration = 0;
+        out.start_dy     = 0;
     }
+    out.tick  = 1;
+    out.dy    = out.start_dy;
+    out.dx    = 0;
+    out.s     = s;
 
     return out;
 }
@@ -241,18 +246,15 @@ game game_tick(game *in) {
     }
 
     if (out.dx >= (10 * CELL_SIZE)) {
-        printf("slide!\n");
         out.dx = 0;
         out.w = world_slide(&in->w, -10, 0);
     }
-    if (out.dy >= (10 * CELL_SIZE)) {
-        printf("slide!\n");
-        out.dy = 0;
+    if (out.dy - out.start_dy >= (10 * CELL_SIZE)) {
+        out.dy = out.start_dy;
         out.w  = world_slide(&in->w, 0, -10);
     }
-    if (out.dy <= -(10 * CELL_SIZE)) {
-        printf("slide!\n");
-        out.dy = 0;
+    if (out.dy - out.start_dy <= -(10 * CELL_SIZE)) {
+        out.dy = out.start_dy;
         out.w  = world_slide(&in->w, 0, 10);
     }
 
@@ -275,9 +277,6 @@ short game_collision(game *in) {
     }
     return 0;
 }
-
-#define WINDOW_WIDTH  640
-#define WINDOW_HEIGHT 480
 
 #ifndef _TESTING
 int main(void) {
