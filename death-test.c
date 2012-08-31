@@ -312,6 +312,39 @@ START_TEST (test_world_step_glider)
 }
 END_TEST
 
+START_TEST (test_world_slide)
+{
+    short ox = 3, oy = 3;
+    char *t =
+        "_______"
+        "_______"
+        "_______"
+        "___O___"
+        "_______"
+        "_______"
+        "_______";
+
+    world w0 = str_to_world(7, t);
+    for (short dx = -2; dx <= 2; ++dx) {
+        for (short dy = -2; dy <= 2; ++dy) {
+            world w1 = world_slide(&w0, dx, dy);
+            fail_unless(basic_world_assertions(&w1));
+            /* printf("(%d,%d)->\n", dx, dy);
+            print_world(&w1, 8, 8);
+            printf("\n"); */
+            fail_unless(world_cell_alive(&w1, ox+dx, oy+dy));
+            for (short tx = -1; tx <= 1; ++tx) {
+                for (short ty = -1; ty <= 1; ++ty) {
+                    if (tx || ty) {
+                        fail_unless(! world_cell_alive(&w1, ox+dx+tx, oy+dy+ty));
+                    }
+                }
+            }
+        }
+    }
+}
+END_TEST
+
 START_TEST (test_game_tick)
 {
     int i;
@@ -347,6 +380,7 @@ int main(void) {
     tcase_add_test(tc, test_world_step_beehive);
     tcase_add_test(tc, test_world_step_blinker);
     tcase_add_test(tc, test_world_step_glider);
+    tcase_add_test(tc, test_world_slide);
     tcase_add_test(tc, test_game_new);
     tcase_add_test(tc, test_game_tick);
 

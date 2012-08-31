@@ -51,6 +51,21 @@ world world_step(world *in) {
     return out;
 }
 
+world world_slide(world *in, short dx, short dy) {
+    world out;
+
+    for (int x = 0; x < DIM; ++x) {
+        for (int y = 0; y < DIM; ++y) {
+            if ((x-dx >= 0) && (x-dx < DIM) && (y-dy >= 0) && (y-dy < DIM)) {
+                world_cell_set(&out, x, y, world_cell_alive(in, x-dx, y-dy));
+            } else {
+                world_cell_set(&out, x, y, 1);
+            }
+        }
+    }
+    return out;
+}
+
 typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
 
 #define state_playing(s) (((s) == playing_nil) || ((s) == playing_up) || ((s) == playing_down))
