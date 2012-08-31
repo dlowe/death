@@ -97,6 +97,17 @@ START_TEST (test_event_handler)
 }
 END_TEST
 
+START_TEST (test_state_playing)
+{
+    fail_unless(state_playing(splash)       == 0);
+    fail_unless(state_playing(quit)         == 0);
+    fail_unless(state_playing(dead)         == 0);
+    fail_unless(state_playing(playing_nil)  == 1);
+    fail_unless(state_playing(playing_up)   == 1);
+    fail_unless(state_playing(playing_down) == 1);
+}
+END_TEST
+
 short basic_world_assertions(world *in) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
@@ -125,28 +136,6 @@ START_TEST (test_game_new)
     fail_unless(g.dy == 0);
 }
 END_TEST
-
-world str_to_world(short width, char *in) {
-    int x, y;
-    world out;
-
-    for (x = 0; x < DIM; ++x) {
-        for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, x, y, 0);
-        }
-    }
-
-    y = 0;
-    while (in[width * y]) {
-        for (x = 0; x < width; ++x) {
-            /* printf("%c", in[width * y + x]); */
-            world_cell_set(&out, x, y, in[width * y + x] != '_');
-        }
-        /* printf("\n"); */
-        ++y;
-    }
-    return out;
-}
 
 short worlds_are_equal(world *w1, world *w2) {
     int x, y;
@@ -309,11 +298,12 @@ int main(void) {
     
     tc = tcase_create("death");
     tcase_add_test(tc, test_event_handler);
-    tcase_add_test(tc, test_game_new);
+    tcase_add_test(tc, test_state_playing);
     tcase_add_test(tc, test_world_step_block);
     tcase_add_test(tc, test_world_step_beehive);
     tcase_add_test(tc, test_world_step_blinker);
     tcase_add_test(tc, test_world_step_glider);
+    tcase_add_test(tc, test_game_new);
     tcase_add_test(tc, test_game_tick);
 
     suite = suite_create("death");

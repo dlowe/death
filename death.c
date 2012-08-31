@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define DIM 80
+#define DIM 64
 
 typedef struct {
     unsigned char cells[(DIM * DIM) / 8];
@@ -94,6 +94,26 @@ state event_handler(state in, XEvent event) {
     return in;
 }
 
+world str_to_world(short width, char *in) {
+    int x, y;
+    world out;
+
+    for (x = 0; x < DIM; ++x) {
+        for (y = 0; y < DIM; ++y) {
+            world_cell_set(&out, x, y, 0);
+        }
+    }
+
+    y = 0;
+    while (in[width * y]) {
+        for (x = 0; x < width; ++x) {
+            world_cell_set(&out, x, y, in[width * y + x] != '_');
+        }
+        ++y;
+    }
+    return out;
+}
+
 #define CELL_SIZE           20
 #define PLAYER_WIDTH        20
 #define PLAYER_HEIGHT       16
@@ -125,13 +145,54 @@ game game_transition(game *in, state s) {
         }
     }
 
-    for (int x = 0; x < DIM; ++x) {
-        for (int y = 0; y < DIM; ++y) {
-            world_cell_set(&out.w, x, y, (rand() % 8) == 1);
+    if (s == splash) {
+        char *splash_s =
+            "______________________________"
+            "__OO_____________________O____"
+            "_O____O__OO__O_O_OO__O_O_O__OO"
+            "_O___O_O_O_O_OOO__OO_O_O___OO_"
+            "_O___O_O_O_O_OOO_O_O__OO____OO"
+            "__OO__O__O_O_OOO_OOO___O___OO_"
+            "______________________O_______"
+            "__OO_____________________O____"
+            "_O___OO__OOO__OO____O___O_____"
+            "_OOO__OO_OOO_O_O___O_O_OOO____"
+            "_O_O_O_O_OOO_OO____O_O__O_____"
+            "__OO_OOO_O_O__OO____O___O_____"
+            "______________________________"
+            "_OO__OOO__O__OOO_O_O__________"
+            "_O_O_O___O_O__O__O_O__________"
+            "_O_O_OOO_OOO__O__OOO__________"
+            "_O_O_O___O_O__O__O_O__________"
+            "_OO__OOO_O_O__O__O_O__________";
+        out.w = str_to_world(30, splash_s);
+    } else if (s == dead) {
+        char *dead_s =
+            "______________________"
+            "______________________"
+            "______________________"
+            "______________________"
+            "________OO__O__O_O_OOO"
+            "_______O___O_O_OOO_O__"
+            "_______OOO_OOO_OOO_OOO"
+            "_______O_O_O_O_O_O_O__"
+            "________OO_O_O_O_O_OOO"
+            "______________________"
+            "________O__O_O_OOO_OO_"
+            "_______O_O_O_O_O___O_O"
+            "_______O_O_O_O_OOO_OOO"
+            "_______O_O_O_O_O___OO_"
+            "________O___O__OOO_O_O";
+        out.w = str_to_world(22, dead_s);
+    } else {
+        for (int x = 0; x < DIM; ++x) {
+            for (int y = 0; y < DIM; ++y) {
+                world_cell_set(&out.w, x, y, (rand() % 8) == 1);
+            }
         }
     }
 
-    out.tick  = 0;
+    out.tick  = 1;
     out.dx    = 0;
     out.dy    = 0;
     out.s     = s;
@@ -140,7 +201,7 @@ game game_transition(game *in, state s) {
         out.speed        = SPEED_START;
         out.acceleration = SPEED_ZOOM;
     } else {
-        out.life_rate    = 0.25;
+        out.life_rate    = 0.5;
         out.speed        = 0;
         out.acceleration = 0;
     }
@@ -170,14 +231,16 @@ game game_tick(game *in) {
 }
 
 short game_collision(game *in) {
-    int ox, oy;
-    for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
-        for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
-            int x, y;
-            x = ox / CELL_SIZE;
-            y = oy / CELL_SIZE;
-            if (world_cell_alive(&in->w, x, y)) {
-                return 1;
+    if (state_playing(in->s)) {
+        int ox, oy;
+        for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + PLAYER_WIDTH; ++ox) {
+            for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + PLAYER_HEIGHT; ++oy) {
+                int x, y;
+                x = ox / CELL_SIZE;
+                y = oy / CELL_SIZE;
+                if (world_cell_alive(&in->w, x, y)) {
+                    return 1;
+                }
             }
         }
     }
