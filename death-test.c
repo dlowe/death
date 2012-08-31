@@ -349,7 +349,7 @@ START_TEST (test_game_tick)
 {
     int i;
     game g = game_transition(NULL, playing_nil);
-    for (i = 0; i < 1200; ++i) {
+    for (i = 0; i < 120; ++i) {
         game gnext = game_tick(&g);
         if (g.tick == 0) {
             /* step, so worlds should no longer be equal */

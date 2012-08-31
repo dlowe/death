@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define DIM 64
+#define DIM 56
 
 typedef struct {
     unsigned char cells[(DIM * DIM) / 8];
@@ -132,11 +132,11 @@ world str_to_world(short width, char *in) {
 #define PLAYER_RATE         5
 #define PLAYER_LEFT         100
 #define PLAYER_TOP          248
-#define FRAME_RATE          20
+#define FRAME_RATE          60
 #define LIFE_RATE           2
-#define CONTROL_SENSITIVITY 6
-#define SPEED_START         3
-#define SPEED_ZOOM          0.015
+#define CONTROL_SENSITIVITY 2
+#define SPEED_START         1
+#define SPEED_ZOOM          0.005
 
 typedef struct {
     world w;
@@ -240,6 +240,22 @@ game game_tick(game *in) {
         out.dy = in->dy + CONTROL_SENSITIVITY;
     }
 
+    if (out.dx >= (10 * CELL_SIZE)) {
+        printf("slide!\n");
+        out.dx = 0;
+        out.w = world_slide(&in->w, -10, 0);
+    }
+    if (out.dy >= (10 * CELL_SIZE)) {
+        printf("slide!\n");
+        out.dy = 0;
+        out.w  = world_slide(&in->w, 0, -10);
+    }
+    if (out.dy <= -(10 * CELL_SIZE)) {
+        printf("slide!\n");
+        out.dy = 0;
+        out.w  = world_slide(&in->w, 0, 10);
+    }
+
     return out;
 }
 
@@ -247,7 +263,7 @@ short game_collision(game *in) {
     if (state_playing(in->s)) {
         int ox, oy;
         for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + CELL_SIZE; ++ox) {
-            for (oy = in-> dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + CELL_SIZE; ++oy) {
+            for (oy = in->dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + CELL_SIZE; ++oy) {
                 int x, y;
                 x = ox / CELL_SIZE;
                 y = oy / CELL_SIZE;
