@@ -281,10 +281,8 @@ int main(void) {
     XDrawPoint(display, cell, gc, 0, CELL_SIZE-1);
     XDrawPoint(display, cell, gc, CELL_SIZE-1, 0);
     XDrawPoint(display, cell, gc, CELL_SIZE-1, CELL_SIZE-1);
-    XChangeGC(display, gc, GCForeground, &gcv_black);
 
     /* build a player sprite */
-    XChangeGC(display, gc, GCForeground, &gcv_white);
     XFillRectangle(display, player, gc, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
     XChangeGC(display, gc, GCForeground, &gcv_green);
     XFillRectangle(display, player, gc,  0,  0, 4, 4);
@@ -296,7 +294,6 @@ int main(void) {
     XFillRectangle(display, player, gc, 16,  4, 4, 4);
     XFillRectangle(display, player, gc, 16,  8, 4, 4);
     XFillRectangle(display, player, gc, 16, 12, 4, 4);
-    XChangeGC(display, gc, GCForeground, &gcv_black);
 
     for (;;) {
         usleep(1000000 / FRAME_RATE);

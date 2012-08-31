@@ -119,23 +119,13 @@ short basic_world_assertions(world *in) {
                 return 0;
             }
 
-            if ((n < 0) || (n > 4)) {
+            if ((n < 0) || (n > 8)) {
                 return 0;
             }
         }
     }
     return 1;
 }
-
-START_TEST (test_game_new)
-{
-    game g = game_transition(NULL, splash);
-    fail_unless(basic_world_assertions(&g.w));
-
-    fail_unless(g.dx == 0);
-    fail_unless(g.dy == 0);
-}
-END_TEST
 
 short worlds_are_equal(world *w1, world *w2) {
     int x, y;
@@ -148,6 +138,60 @@ short worlds_are_equal(world *w1, world *w2) {
     }
     return 1;
 }
+
+START_TEST (test_game_new)
+{
+    game g = game_transition(NULL, splash);
+    fail_unless(basic_world_assertions(&g.w));
+
+    char *splash_s =
+            "______________________________"
+            "__OO_____________________O____"
+            "_O____O__OO__O_O_OO__O_O_O__OO"
+            "_O___O_O_O_O_OOO__OO_O_O___OO_"
+            "_O___O_O_O_O_OOO_O_O__OO____OO"
+            "__OO__O__O_O_OOO_OOO___O___OO_"
+            "______________________O_______"
+            "__OO_____________________O____"
+            "_O___OO__OOO__OO____O___O_____"
+            "_OOO__OO_OOO_O_O___O_O_OOO____"
+            "_O_O_O_O_OOO_OO____O_O__O_____"
+            "__OO_OOO_O_O__OO____O___O_____"
+            "______________________________"
+            "_OO__OOO__O__OOO_O_O__________"
+            "_O_O_O___O_O__O__O_O__________"
+            "_O_O_OOO_OOO__O__OOO__________"
+            "_O_O_O___O_O__O__O_O__________"
+            "_OO__OOO_O_O__O__O_O__________";
+    world w = str_to_world(30, splash_s);
+
+    fail_unless(g.dx == 0);
+    fail_unless(g.dy == 0);
+    fail_unless(worlds_are_equal(&g.w, &w));
+
+    g = game_transition(NULL, dead);
+    fail_unless(basic_world_assertions(&g.w));
+
+    char *dead_s =
+            "______________________"
+            "______________________"
+            "______________________"
+            "______________________"
+            "________OO__O__O_O_OOO"
+            "_______O___O_O_OOO_O__"
+            "_______OOO_OOO_OOO_OOO"
+            "_______O_O_O_O_O_O_O__"
+            "________OO_O_O_O_O_OOO"
+            "______________________"
+            "________O__O_O_OOO_OO_"
+            "_______O_O_O_O_O___O_O"
+            "_______O_O_O_O_OOO_OOO"
+            "_______O_O_O_O_O___OO_"
+            "________O___O__OOO_O_O";
+    w = str_to_world(22, dead_s);
+    fail_unless(worlds_are_equal(&g.w, &w));
+}
+END_TEST
 
 void print_world(world *w, short width, short height) {
     int x, y;
