@@ -245,17 +245,17 @@ game game_tick(game *in) {
         out.dy = in->dy + CONTROL_SENSITIVITY;
     }
 
-    if (out.dx >= (10 * CELL_SIZE)) {
+    if (out.dx >= (8 * CELL_SIZE)) {
         out.dx = 0;
-        out.w = world_slide(&in->w, -10, 0);
+        out.w = world_slide(&in->w, -8, 0);
     }
-    if (out.dy - out.start_dy >= (10 * CELL_SIZE)) {
+    if (out.dy - out.start_dy >= (8 * CELL_SIZE)) {
         out.dy = out.start_dy;
-        out.w  = world_slide(&in->w, 0, -10);
+        out.w  = world_slide(&in->w, 0, -8);
     }
-    if (out.dy - out.start_dy <= -(10 * CELL_SIZE)) {
+    if (out.dy - out.start_dy <= -(8 * CELL_SIZE)) {
         out.dy = out.start_dy;
-        out.w  = world_slide(&in->w, 0, 10);
+        out.w  = world_slide(&in->w, 0, 8);
     }
 
     return out;

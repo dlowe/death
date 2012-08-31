@@ -354,7 +354,7 @@ START_TEST (test_game_tick)
             world_cell_set(&g.w, x, y, (rand() % 8) == 1);
         }
     }
-    for (i = 0; i < 120; ++i) {
+    for (i = 0; i < 30; ++i) {
         game gnext = game_tick(&g);
         if (g.tick == 0) {
             /* step, so worlds should no longer be equal */
