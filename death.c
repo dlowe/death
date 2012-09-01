@@ -79,10 +79,14 @@ state event_handler(state in, XEvent event) {
                 case XK_Up:
                     if (in != dead) {
                         return playing_up;
+                    } else {
+                        return dead;
                     }
                 case XK_Down:
                     if (in != dead) {
                         return playing_down;
+                    } else {
+                        return dead;
                     }
                 default:
                     if (in == splash) {

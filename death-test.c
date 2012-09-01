@@ -18,7 +18,7 @@ START_TEST (test_event_handler)
         }
         event.type = type;
         for (in = splash; in <= dead; ++in) {
-            fail_unless(event_handler(in, event) == in);
+            fail_unless(event_handler(in, event) == in, "ignore event");
         }
     }
 
@@ -28,7 +28,7 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_q);
     for (in = splash; in <= dead; ++in) {
-        fail_unless(event_handler(in, event) == quit);
+        fail_unless(event_handler(in, event) == quit, "quit on q");
     }
 
 
@@ -38,10 +38,10 @@ START_TEST (test_event_handler)
     event.xkey.keycode = XKeysymToKeycode(display, XK_Up);
     /* ... from any non-dead state results in playing_up */
     for (in = splash; in < dead; ++in) {
-        fail_unless(event_handler(in, event) == playing_up);
+        fail_unless(event_handler(in, event) == playing_up, "*+up => up");
     }
     /* ... but from dead, results in splash */
-    fail_unless(event_handler(dead, event) == splash);
+    fail_unless(event_handler(dead, event) == dead, "dead+up => dead");
 
 
     /* pressing down... */
@@ -50,10 +50,10 @@ START_TEST (test_event_handler)
     event.xkey.keycode = XKeysymToKeycode(display, XK_Down);
     /* ... from any non-dead state results in playing_down */
     for (in = splash; in < dead; ++in) {
-        fail_unless(event_handler(in, event) == playing_down);
+        fail_unless(event_handler(in, event) == playing_down, "*+down => down");
     }
     /* ... but from dead, results in splash */
-    fail_unless(event_handler(dead, event) == splash);
+    fail_unless(event_handler(dead, event) == dead, "dead+down => dead");
 
 
     /* pressing any other key... */
@@ -62,12 +62,12 @@ START_TEST (test_event_handler)
     event.xkey.keycode = XKeysymToKeycode(display, XK_a);
     /* ... is a noop when playing */
     for (in = playing_nil; in <= playing_down; ++in) {
-        fail_unless(event_handler(in, event) == in);
+        fail_unless(event_handler(in, event) == in, "*+a => *");
     }
     /* ... splash -> playing_nil */
-    fail_unless(event_handler(splash, event) == playing_nil);
+    fail_unless(event_handler(splash, event) == playing_nil, "splash+a => playing_nil");
     /* ... dead -> splash */
-    fail_unless(event_handler(dead, event) == splash);
+    fail_unless(event_handler(dead, event) == splash, "dead+a => splash");
 
     /* releasing up... */
     event.type         = KeyRelease;
@@ -76,11 +76,11 @@ START_TEST (test_event_handler)
     /* ... is ignored for everything but playing_up */
     for (in = splash; in <= dead; ++in) {
         if (in != playing_up) {
-            fail_unless(event_handler(in, event) == in);
+            fail_unless(event_handler(in, event) == in, "*+!up => *");
         }
     }
     /* ... playing_up -> playing_nil */
-    fail_unless(event_handler(playing_up, event) == playing_nil);
+    fail_unless(event_handler(playing_up, event) == playing_nil, "up+!up => nil");
 
     /* releasing down... */
     event.type         = KeyRelease;
@@ -89,22 +89,22 @@ START_TEST (test_event_handler)
     /* ... is ignored for everything but playing_down */
     for (in = splash; in <= dead; ++in) {
         if (in != playing_down) {
-            fail_unless(event_handler(in, event) == in);
+            fail_unless(event_handler(in, event) == in, "*+!down => *");
         }
     }
     /* ... playing_down -> playing_nil */
-    fail_unless(event_handler(playing_down, event) == playing_nil);
+    fail_unless(event_handler(playing_down, event) == playing_nil, "down+!down => nil");
 }
 END_TEST
 
 START_TEST (test_state_playing)
 {
-    fail_unless(state_playing(splash)       == 0);
-    fail_unless(state_playing(quit)         == 0);
-    fail_unless(state_playing(dead)         == 0);
-    fail_unless(state_playing(playing_nil)  == 1);
-    fail_unless(state_playing(playing_up)   == 1);
-    fail_unless(state_playing(playing_down) == 1);
+    fail_unless(state_playing(splash)       == 0, "!splash");
+    fail_unless(state_playing(quit)         == 0, "!quit");
+    fail_unless(state_playing(dead)         == 0, "!dead");
+    fail_unless(state_playing(playing_nil)  == 1, "nil");
+    fail_unless(state_playing(playing_up)   == 1, "up");
+    fail_unless(state_playing(playing_down) == 1, "down");
 }
 END_TEST
 
@@ -142,7 +142,7 @@ short worlds_are_equal(world *w1, world *w2) {
 START_TEST (test_game_new)
 {
     game g = game_transition(NULL, splash);
-    fail_unless(basic_world_assertions(&g.w));
+    fail_unless(basic_world_assertions(&g.w), "splash basics");
 
     char *splash_s =
             "______________________________"
@@ -165,12 +165,12 @@ START_TEST (test_game_new)
             "_OO__OOO_O_O__O__O_O__________";
     world w = str_to_world(30, splash_s);
 
-    fail_unless(g.dx == 0);
-    fail_unless(g.dy == 0);
-    fail_unless(worlds_are_equal(&g.w, &w));
+    fail_unless(g.dx == 0, "dx is 0");
+    fail_unless(g.dy == 0, "dy is 0");
+    fail_unless(worlds_are_equal(&g.w, &w), "splash rendered");
 
     g = game_transition(NULL, dead);
-    fail_unless(basic_world_assertions(&g.w));
+    fail_unless(basic_world_assertions(&g.w), "dead basics");
 
     char *dead_s =
             "______________________"
@@ -189,7 +189,7 @@ START_TEST (test_game_new)
             "_______O_O_O_O_O___OO_"
             "________O___O__OOO_O_O";
     w = str_to_world(22, dead_s);
-    fail_unless(worlds_are_equal(&g.w, &w));
+    fail_unless(worlds_are_equal(&g.w, &w), "dead rendered");
 }
 END_TEST
 
@@ -213,7 +213,7 @@ START_TEST (test_world_step_block)
 
     world w0 = str_to_world(4, block);
     world w1 = world_step(&w0);
-    fail_unless(worlds_are_equal(&w0, &w1));
+    fail_unless(worlds_are_equal(&w0, &w1), "block step 1");
 }
 END_TEST
 
@@ -228,7 +228,7 @@ START_TEST (test_world_step_beehive)
     world w0 = str_to_world(6, beehive);
     world w1 = world_step(&w0);
 
-    fail_unless(worlds_are_equal(&w0, &w1));
+    fail_unless(worlds_are_equal(&w0, &w1), "beehive step 1");
 }
 END_TEST
 
@@ -253,8 +253,8 @@ START_TEST (test_world_step_blinker)
     world w2_actual = world_step(&w1_actual);
     world w1_expected = str_to_world(5, blinker1);
 
-    fail_unless(worlds_are_equal(&w1_actual, &w1_expected));
-    fail_unless(worlds_are_equal(&w2_actual, &w0));
+    fail_unless(worlds_are_equal(&w1_actual, &w1_expected), "blinker step 1");
+    fail_unless(worlds_are_equal(&w2_actual, &w0), "blinker step 2");
 }
 END_TEST
 
@@ -305,10 +305,10 @@ START_TEST (test_world_step_glider)
     world w3_expected = str_to_world(8, glider3);
     world w4_expected = str_to_world(8, glider4);
 
-    fail_unless(worlds_are_equal(&w1_actual, &w1_expected));
-    fail_unless(worlds_are_equal(&w2_actual, &w2_expected));
-    fail_unless(worlds_are_equal(&w3_actual, &w3_expected));
-    fail_unless(worlds_are_equal(&w4_actual, &w4_expected));
+    fail_unless(worlds_are_equal(&w1_actual, &w1_expected), "glider step 1");
+    fail_unless(worlds_are_equal(&w2_actual, &w2_expected), "glider step 2");
+    fail_unless(worlds_are_equal(&w3_actual, &w3_expected), "glider step 3");
+    fail_unless(worlds_are_equal(&w4_actual, &w4_expected), "glider step 4");
 }
 END_TEST
 
@@ -328,15 +328,12 @@ START_TEST (test_world_slide)
     for (short dx = -2; dx <= 2; ++dx) {
         for (short dy = -2; dy <= 2; ++dy) {
             world w1 = world_slide(&w0, dx, dy);
-            fail_unless(basic_world_assertions(&w1));
-            /* printf("(%d,%d)->\n", dx, dy);
-            print_world(&w1, 8, 8);
-            printf("\n"); */
-            fail_unless(world_cell_alive(&w1, ox+dx, oy+dy));
+            fail_unless(basic_world_assertions(&w1), "slide basics");
+            fail_unless(world_cell_alive(&w1, ox+dx, oy+dy), "slide correct cell alive");
             for (short tx = -1; tx <= 1; ++tx) {
                 for (short ty = -1; ty <= 1; ++ty) {
                     if (tx || ty) {
-                        fail_unless(! world_cell_alive(&w1, ox+dx+tx, oy+dy+ty));
+                        fail_unless(! world_cell_alive(&w1, ox+dx+tx, oy+dy+ty), "slide correct cell dead");
                     }
                 }
             }
@@ -358,15 +355,15 @@ START_TEST (test_game_tick)
         game gnext = game_tick(&g);
         if (g.tick == 0) {
             /* step, so worlds should no longer be equal */
-            fail_unless(! worlds_are_equal(&g.w, &gnext.w));
+            fail_unless(! worlds_are_equal(&g.w, &gnext.w), "unequal after step");
         } else {
             /* no step, so worlds should be equal */
-            fail_unless(worlds_are_equal(&g.w, &gnext.w));
+            fail_unless(worlds_are_equal(&g.w, &gnext.w), "equal after !step");
         }
-        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < 0.00001);
-        fail_unless(gnext.dy == g.dy);
-        fail_unless(gnext.dx == (int)(g.dx + gnext.speed));
-        fail_unless(gnext.s == g.s);
+        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < 0.00001, "speed increased");
+        fail_unless(gnext.dy == g.dy, "dy constant");
+        fail_unless(gnext.dx == (int)(g.dx + gnext.speed), "dx increased");
+        fail_unless(gnext.s == g.s, "state constant");
         g = gnext;
     }
 }

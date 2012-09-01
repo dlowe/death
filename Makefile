@@ -5,7 +5,7 @@ OBJ  := $(CODE:.c=.o)
 TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c
 
-CC      := gcc
+CC      := clang
 CFLAGS  := -ggdb -std=c99 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE
 LDFLAGS := -lX11
 
