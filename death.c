@@ -23,9 +23,6 @@ short world_cell_living_neighbors(world *in, short x, short y) {
                 if ((y+dy >= 0) && (y+dy < DIM)) {
                     if (! ((dx == 0) && (dy == 0))) {
                         n += world_cell_alive(in, x+dx, y+dy);
-                        if (n >= 4) {
-                            return 4;
-                        }
                     }
                 }
             }
