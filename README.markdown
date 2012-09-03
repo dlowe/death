@@ -16,6 +16,8 @@ TODO:
 
 obfuscations TODO:
  rearrange state enum so that state_playing() can be modulus
+ use a temporary member of the game struct instead of return values for neighbors
+ rearrange event handler to be a single expression
 
 shrinking TODO:
  compact representation of the sprites
