@@ -6,22 +6,20 @@
 #include <time.h>
 #include <stdio.h>
 
-#define DIM 48
-
 typedef struct {
-    unsigned char cells[(DIM * DIM) / 8];
+    unsigned char cells[288];
 } world;
 
-#define _o(x, y) ((x)*DIM+(y))
+#define _o(x, y) ((x)*48+(y))
 #define world_cell_alive(w, x, y)  (((w)->cells[_o(x,y) / 8] & (1 << (_o(x,y) % 8))) ? 1 : 0)
 #define world_cell_set(w, x, y, b) (b) ? ((w)->cells[_o(x,y) / 8] |= (1 << (_o(x,y) % 8))) : ((w)->cells[_o(x,y) / 8] &= ~(1 << (_o(x,y) % 8)))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
     for (int dx = -1; dx <= 1; ++dx) {
-        if ((x+dx >= 0) && (x+dx < DIM)) {
+        if ((x+dx >= 0) && (x+dx < 48)) {
             for (int dy = -1; dy <= 1; ++dy) {
-                if ((y+dy >= 0) && (y+dy < DIM)) {
+                if ((y+dy >= 0) && (y+dy < 48)) {
                     if (! ((dx == 0) && (dy == 0))) {
                         n += world_cell_alive(in, x+dx, y+dy);
                     }
@@ -35,8 +33,8 @@ short world_cell_living_neighbors(world *in, short x, short y) {
 world world_step(world *in) {
     world out;
 
-    for (int x = 0; x < DIM; ++x) {
-        for (int y = 0; y < DIM; ++y) {
+    for (int x = 0; x < 48; ++x) {
+        for (int y = 0; y < 48; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
             if (world_cell_alive(in, x, y)) {
                 world_cell_set(&out, x, y, (n == 2) || (n == 3));
@@ -52,9 +50,9 @@ world world_step(world *in) {
 world world_slide(world *in, short dx, short dy) {
     world out;
 
-    for (int x = 0; x < DIM; ++x) {
-        for (int y = 0; y < DIM; ++y) {
-            if ((x-dx >= 0) && (x-dx < DIM) && (y-dy >= 0) && (y-dy < DIM)) {
+    for (int x = 0; x < 48; ++x) {
+        for (int y = 0; y < 48; ++y) {
+            if ((x-dx >= 0) && (x-dx < 48) && (y-dy >= 0) && (y-dy < 48)) {
                 world_cell_set(&out, x, y, world_cell_alive(in, x-dx, y-dy));
             } else {
                 world_cell_set(&out, x, y, (rand() % 8) == 1);
@@ -112,8 +110,8 @@ game game_transition(game *in, int s) {
         fread(&out.w, sizeof(world), 1, f);
         fclose(f);
     } else {
-        for (int x = 0; x < DIM; ++x) {
-            for (int y = 0; y < DIM; ++y) {
+        for (int x = 0; x < 48; ++x) {
+            for (int y = 0; y < 48; ++y) {
                 world_cell_set(&out.w, x, y, 0);
             }
         }
@@ -123,7 +121,7 @@ game game_transition(game *in, int s) {
         out.life_rate    = LIFE_RATE;
         out.speed        = SPEED_START;
         out.acceleration = SPEED_ZOOM;
-        out.start_dy     = ((DIM*CELL_SIZE) / 2) - (WINDOW_HEIGHT / 2);
+        out.start_dy     = ((48*CELL_SIZE) / 2) - (WINDOW_HEIGHT / 2);
     } else {
         out.life_rate    = 0.5;
         out.speed        = 0;
@@ -259,9 +257,9 @@ int main(void) {
 
         XChangeGC(display, gc, GCForeground, &gcv_white);
         XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        for (int y = 0; y < DIM; ++y) {
+        for (int y = 0; y < 48; ++y) {
             int oy = y*CELL_SIZE-the_game.dy;
-            for (int x = 0; x < DIM; ++x) {
+            for (int x = 0; x < 48; ++x) {
                 int ox = x*CELL_SIZE-the_game.dx;
                 if (world_cell_alive(&the_game.w, x, y)) {
                     XCopyArea(display, sprites, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);

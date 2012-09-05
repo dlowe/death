@@ -3,6 +3,8 @@
 #define _TESTING
 #include "death.c"
 
+#define DIM 48
+
 world str_to_world(short width, char *in) {
     int x, y;
     world out;

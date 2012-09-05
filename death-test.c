@@ -4,6 +4,8 @@
 #define _TESTING
 #include "death.c"
 
+#define DIM 48
+
 void print_world(world *w, short width, short height) {
     int x, y;
     for (y = 0; y < height; ++y) {
