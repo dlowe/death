@@ -89,10 +89,10 @@ game game_transition(game *in, int s) {
     }
 
     if (s == 2) {
-        freopen("splash.dat", "r", stdin);
+        freopen("2.d", "r", stdin);
         fread(&out.w, sizeof(world), 1, stdin);
     } else if (s == 4) {
-        freopen("dead.dat", "r", stdin);
+        freopen("1.d", "r", stdin);
         fread(&out.w, sizeof(world), 1, stdin);
     } else {
         for (int x = 0; x < 48; ++x) {
@@ -190,7 +190,7 @@ int main(void) {
     W.foreground = WhitePixel(d, s);
     B.foreground = BlackPixel(d, s);
 
-    freopen("sprites.dat", "r", stdin);
+    freopen("0.d", "r", stdin);
     fread(&the_game.w, sizeof(world), 1, stdin);
 
     for (int x = 0; x < 20; ++x) {
@@ -211,7 +211,7 @@ int main(void) {
     the_game = game_transition(NULL, 2);
 
     for (; ; ) {
-        usleep(1000000 / 60);
+        usleep(16666);
 
         while (XPending(d)) {
             XEvent v;

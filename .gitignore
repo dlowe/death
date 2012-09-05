@@ -3,5 +3,5 @@ death-test
 death-data
 death.o
 *.swp
-*.dat
+*.d
 *.dSYM

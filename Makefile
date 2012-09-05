@@ -4,13 +4,13 @@ OBJ  := $(CODE:.c=.o)
 
 DNAME := $(NAME)-data
 DCODE := $(DNAME).c
-DATA  := dead.dat splash.dat sprites.dat
+DATA  := 0.d 1.d 2.d
 
 TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c
 
 CC      := clang
-CFLAGS  := -ggdb -std=c99 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE
+CFLAGS  := -ggdb -std=c99 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
 LDFLAGS := -lX11
 
 .PHONY: all
