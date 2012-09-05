@@ -4,7 +4,19 @@
 #define _TESTING
 #include "death.c"
 
-#define DIM 48
+#define DIM                 48
+#define CELL_SIZE           20
+#define PLAYER_LOOP         4
+#define PLAYER_RATE         5
+#define PLAYER_LEFT         100
+#define PLAYER_TOP          248
+#define FRAME_RATE          60
+#define LIFE_RATE           2
+#define CONTROL_SENSITIVITY 2
+#define SPEED_START         1
+#define SPEED_ZOOM          0.002
+#define WINDOW_WIDTH        640
+#define WINDOW_HEIGHT       480
 
 void print_world(world *w, short width, short height) {
     int x, y;

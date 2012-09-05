@@ -67,19 +67,6 @@ int e(int i, XEvent e) {
     return e.type == KeyPress ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (i == 4 ? i : 3) : (k == XK_Down ? (i == 4 ? i : 5) : (i == 2 ? 1 : (i == 4 ? 2 : i))))) : (e.type == KeyRelease ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_Up ? (i == 3 ? 1 : i) : (i == 5 ? 1 : i)) : i);
 }
 
-#define CELL_SIZE           20
-#define PLAYER_LOOP         4
-#define PLAYER_RATE         5
-#define PLAYER_LEFT         100
-#define PLAYER_TOP          248
-#define FRAME_RATE          60
-#define LIFE_RATE           2
-#define CONTROL_SENSITIVITY 2
-#define SPEED_START         1
-#define SPEED_ZOOM          0.002
-#define WINDOW_WIDTH        640
-#define WINDOW_HEIGHT       480
-
 typedef struct {
     world w;
     int s;
@@ -118,10 +105,10 @@ game game_transition(game *in, int s) {
     }
 
     if (s % 2) {
-        out.life_rate    = LIFE_RATE;
-        out.speed        = SPEED_START;
-        out.acceleration = SPEED_ZOOM;
-        out.start_dy     = ((48*CELL_SIZE) / 2) - (WINDOW_HEIGHT / 2);
+        out.life_rate    = 2;
+        out.speed        = 1;
+        out.acceleration = 0.002;
+        out.start_dy     = ((48*20) / 2) - (480 / 2);
     } else {
         out.life_rate    = 0.5;
         out.speed        = 0;
@@ -143,26 +130,26 @@ game game_tick(game *in) {
     if (in->tick == 0) {
         out.w = world_step(&in->w);
     }
-    out.tick = (in->tick + 1) % (int)(FRAME_RATE / out.life_rate);
+    out.tick = (in->tick + 1) % (int)(60 / out.life_rate);
     out.speed = in->speed + out.acceleration;
     out.dx = in->dx + out.speed;
 
     if (in->s == 3) {
-        out.dy = in->dy - CONTROL_SENSITIVITY;
+        out.dy = in->dy - 2;
     }
     if (in->s == 5) {
-        out.dy = in->dy + CONTROL_SENSITIVITY;
+        out.dy = in->dy + 2;
     }
 
-    if (out.dx >= (8 * CELL_SIZE)) {
+    if (out.dx >= (8 * 20)) {
         out.dx = 0;
         out.w = world_slide(&in->w, -8, 0);
     }
-    if (out.dy - out.start_dy >= (8 * CELL_SIZE)) {
+    if (out.dy - out.start_dy >= (8 * 20)) {
         out.dy = out.start_dy;
         out.w  = world_slide(&in->w, 0, -8);
     }
-    if (out.dy - out.start_dy <= -(8 * CELL_SIZE)) {
+    if (out.dy - out.start_dy <= -(8 * 20)) {
         out.dy = out.start_dy;
         out.w  = world_slide(&in->w, 0, 8);
     }
@@ -173,11 +160,11 @@ game game_tick(game *in) {
 short game_collision(game *in) {
     if (in->s % 2) {
         int ox, oy;
-        for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + CELL_SIZE; ++ox) {
-            for (oy = in->dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + CELL_SIZE; ++oy) {
+        for (ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
+            for (oy = in->dy + 248; oy < in->dy + 248 + 20; ++oy) {
                 int x, y;
-                x = ox / CELL_SIZE;
-                y = oy / CELL_SIZE;
+                x = ox / 20;
+                y = oy / 20;
                 if (world_cell_alive(&in->w, x, y)) {
                     return 1;
                 }
@@ -192,9 +179,9 @@ int main(void) {
     Display *display = XOpenDisplay(NULL);
     int screen       = DefaultScreen(display);
     Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
-        40, 40, WINDOW_WIDTH, WINDOW_HEIGHT, 3, BlackPixel(display, screen), WhitePixel(display, screen));
-    Pixmap pixmap    = XCreatePixmap(display, window, WINDOW_WIDTH, WINDOW_HEIGHT, DefaultDepth(display, screen));
-    Pixmap sprites   = XCreatePixmap(display, window, CELL_SIZE, CELL_SIZE * (PLAYER_LOOP+1), DefaultDepth(display, screen));
+        40, 40, 640, 480, 3, BlackPixel(display, screen), WhitePixel(display, screen));
+    Pixmap pixmap    = XCreatePixmap(display, window, 640, 480, DefaultDepth(display, screen));
+    Pixmap sprites   = XCreatePixmap(display, window, 20, 20 * (4+1), DefaultDepth(display, screen));
     GC gc            = DefaultGC(display, screen);
     XGCValues gcv_white, gcv_black, gcv_green;
     int ptick = 0, pn = 0;
@@ -211,8 +198,8 @@ int main(void) {
     fread(&the_game.w, sizeof(world), 1, f);
     fclose(f);
 
-    for (int x = 0; x < CELL_SIZE; ++x) {
-        for (int y = 0; y < CELL_SIZE; ++y) {
+    for (int x = 0; x < 20; ++x) {
+        for (int y = 0; y < 20; ++y) {
             if (world_cell_alive(&the_game.w, x, y)) {
                 XChangeGC(display, gc, GCForeground, &gcv_black);
             } else {
@@ -222,14 +209,14 @@ int main(void) {
         }
     }
 
-    for (int x = CELL_SIZE; x < CELL_SIZE + 5; ++x) {
-        for (int y = 0; y < CELL_SIZE; ++y) {
+    for (int x = 20; x < 20 + 5; ++x) {
+        for (int y = 0; y < 20; ++y) {
             if (world_cell_alive(&the_game.w, x, y)) {
                 XChangeGC(display, gc, GCForeground, &gcv_green);
             } else {
                 XChangeGC(display, gc, GCForeground, &gcv_white);
             }
-            XFillRectangle(display, sprites, gc, 4 * (x - CELL_SIZE), CELL_SIZE + 4 * y, 4, 4);
+            XFillRectangle(display, sprites, gc, 4 * (x - 20), 20 + 4 * y, 4, 4);
         }
     }
 
@@ -237,7 +224,7 @@ int main(void) {
     the_game = game_transition(NULL, 2);
 
     for (;;) {
-        usleep(1000000 / FRAME_RATE);
+        usleep(1000000 / 60);
 
         while (XPending(display)) {
             XEvent event;
@@ -256,26 +243,26 @@ int main(void) {
         }
 
         XChangeGC(display, gc, GCForeground, &gcv_white);
-        XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        XFillRectangle(display, pixmap, gc, 0, 0, 640, 480);
         for (int y = 0; y < 48; ++y) {
-            int oy = y*CELL_SIZE-the_game.dy;
+            int oy = y*20-the_game.dy;
             for (int x = 0; x < 48; ++x) {
-                int ox = x*CELL_SIZE-the_game.dx;
+                int ox = x*20-the_game.dx;
                 if (world_cell_alive(&the_game.w, x, y)) {
-                    XCopyArea(display, sprites, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
+                    XCopyArea(display, sprites, pixmap, gc, 0, 0, 20, 20, ox, oy);
                 }
             }
         }
         if (the_game.s % 2) {
-            XCopyArea(display, sprites, pixmap, gc, 0, CELL_SIZE*(pn + 1),
-                CELL_SIZE, CELL_SIZE, PLAYER_LEFT, PLAYER_TOP);
-            ptick = (ptick + 1) % (int)(FRAME_RATE / PLAYER_RATE);
+            XCopyArea(display, sprites, pixmap, gc, 0, 20*(pn + 1),
+                20, 20, 100, 248);
+            ptick = (ptick + 1) % (int)(60 / 5);
             if (ptick == 0) {
-                pn = (pn + 1) % PLAYER_LOOP;
+                pn = (pn + 1) % 4;
             }
         }
 
-        XCopyArea(display, pixmap, window, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
+        XCopyArea(display, pixmap, window, gc, 0, 0, 640, 480, 0, 0);
         XFlush(display);
     }
 
