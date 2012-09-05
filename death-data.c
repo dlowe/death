@@ -9,14 +9,14 @@ world str_to_world(short width, char *in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, DIM, x, y, 0);
+            world_cell_set(&out, x, y, 0);
         }
     }
 
     y = 0;
     while (in[width * y]) {
         for (x = 0; x < width; ++x) {
-            world_cell_set(&out, DIM, x, y, in[width * y + x] != '_');
+            world_cell_set(&out, x, y, in[width * y + x] != '_');
         }
         ++y;
     }
