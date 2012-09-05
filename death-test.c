@@ -47,7 +47,7 @@ START_TEST (test_event_handler)
             continue;
         }
         event.type = type;
-        for (in = splash; in <= dead; ++in) {
+        for (in = quit; in <= playing_down; ++in) {
             fail_unless(event_handler(in, event) == in, "ignore event");
         }
     }
@@ -57,7 +57,7 @@ START_TEST (test_event_handler)
     event.type         = KeyPress;
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_q);
-    for (in = splash; in <= dead; ++in) {
+    for (in = quit; in <= playing_down; ++in) {
         fail_unless(event_handler(in, event) == quit, "quit on q");
     }
 
@@ -67,8 +67,10 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_Up);
     /* ... from any non-dead state results in playing_up */
-    for (in = splash; in < dead; ++in) {
-        fail_unless(event_handler(in, event) == playing_up, "*+up => up");
+    for (in = quit; in <= playing_down; ++in) {
+        if (in != dead) {
+            fail_unless(event_handler(in, event) == playing_up, "*+up => up");
+        }
     }
     /* ... but from dead, results in splash */
     fail_unless(event_handler(dead, event) == dead, "dead+up => dead");
@@ -79,8 +81,10 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_Down);
     /* ... from any non-dead state results in playing_down */
-    for (in = splash; in < dead; ++in) {
-        fail_unless(event_handler(in, event) == playing_down, "*+down => down");
+    for (in = quit; in <= playing_down; ++in) {
+        if (in != dead) {
+            fail_unless(event_handler(in, event) == playing_down, "*+down => down");
+        }
     }
     /* ... but from dead, results in splash */
     fail_unless(event_handler(dead, event) == dead, "dead+down => dead");
@@ -91,8 +95,10 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_a);
     /* ... is a noop when playing */
-    for (in = playing_nil; in <= playing_down; ++in) {
-        fail_unless(event_handler(in, event) == in, "*+a => *");
+    for (in = quit; in <= playing_down; ++in) {
+        if (state_playing(in)) {
+            fail_unless(event_handler(in, event) == in, "%d+a => %d", in, event_handler(in, event));
+        }
     }
     /* ... splash -> playing_nil */
     fail_unless(event_handler(splash, event) == playing_nil, "splash+a => playing_nil");
@@ -104,7 +110,7 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_Up);
     /* ... is ignored for everything but playing_up */
-    for (in = splash; in <= dead; ++in) {
+    for (in = quit; in <= playing_down; ++in) {
         if (in != playing_up) {
             fail_unless(event_handler(in, event) == in, "*+!up => *");
         }
@@ -117,7 +123,7 @@ START_TEST (test_event_handler)
     event.xkey.display = display;
     event.xkey.keycode = XKeysymToKeycode(display, XK_Down);
     /* ... is ignored for everything but playing_down */
-    for (in = splash; in <= dead; ++in) {
+    for (in = quit; in <= playing_down; ++in) {
         if (in != playing_down) {
             fail_unless(event_handler(in, event) == in, "*+!down => *");
         }

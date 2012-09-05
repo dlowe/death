@@ -64,9 +64,9 @@ world world_slide(world *in, short dx, short dy) {
     return out;
 }
 
-typedef enum { splash, quit, playing_nil, playing_up, playing_down, dead } state;
+typedef enum { quit, playing_nil, splash, playing_up, dead, playing_down } state;
 
-#define state_playing(s) (((s) == playing_nil) || ((s) == playing_up) || ((s) == playing_down))
+#define state_playing(s) ((s) % 2)
 
 state event_handler(state in, XEvent event) {
     switch (event.type) {
@@ -290,7 +290,7 @@ int main(void) {
             the_game = game_transition(&the_game, event_handler(the_game.s, event));
         }
 
-        if (the_game.s == quit) {
+        if (! the_game.s) {
             break;
         }
 

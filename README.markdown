@@ -15,13 +15,8 @@ TODO:
  see if it works with toledo/layer.c, or windows x11
 
 obfuscations TODO:
- rearrange state enum so that state_playing() can be modulus
  use a temporary member of the game struct instead of return values for neighbors
  rearrange event handler to be a single expression
-
-shrinking TODO:
- compact representation of the sprites
- compact representation of splashes
 
 bugs:
  hard-coded green color
