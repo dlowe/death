@@ -176,23 +176,22 @@ short game_collision(game *in) {
 
 #ifndef _TESTING
 int main(void) {
-    Display *display = XOpenDisplay(NULL);
-    int screen       = DefaultScreen(display);
-    Window window    = XCreateSimpleWindow(display, RootWindow(display, screen),
-        40, 40, 640, 480, 3, BlackPixel(display, screen), WhitePixel(display, screen));
-    Pixmap pixmap    = XCreatePixmap(display, window, 640, 480, DefaultDepth(display, screen));
-    Pixmap sprites   = XCreatePixmap(display, window, 20, 20 * (4+1), DefaultDepth(display, screen));
-    GC gc            = DefaultGC(display, screen);
-    XGCValues gcv_white, gcv_black, gcv_green;
+    Display *d = XOpenDisplay(NULL);
+    int s       = DefaultScreen(d);
+    Window w    = XCreateSimpleWindow(d, RootWindow(d, s),
+        40, 40, 640, 480, 3, 0, 0);
+    Pixmap b = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s));
+    Pixmap p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
+    GC g = DefaultGC(d, s);
+    XGCValues W, B;
     int ptick = 0, pn = 0;
 
     game the_game;
 
-    XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
-    XMapWindow(display, window);
-    gcv_white.foreground = WhitePixel(display, screen);
-    gcv_black.foreground = BlackPixel(display, screen);
-    gcv_green.foreground = 0x00ff00;
+    XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
+    XMapWindow(d, w);
+    W.foreground = WhitePixel(d, s);
+    B.foreground = BlackPixel(d, s);
 
     FILE *f = fopen("sprites.dat", "r");
     fread(&the_game.w, sizeof(world), 1, f);
@@ -200,37 +199,29 @@ int main(void) {
 
     for (int x = 0; x < 20; ++x) {
         for (int y = 0; y < 20; ++y) {
-            if (world_cell_alive(&the_game.w, x, y)) {
-                XChangeGC(display, gc, GCForeground, &gcv_black);
-            } else {
-                XChangeGC(display, gc, GCForeground, &gcv_white);
-            }
-            XDrawPoint(display, sprites, gc, x, y);
+            XChangeGC(d, g, GCForeground, world_cell_alive(&the_game.w, x, y) ? &B : &W);
+            XDrawPoint(d, p, g, x, y);
         }
     }
 
     for (int x = 20; x < 20 + 5; ++x) {
         for (int y = 0; y < 20; ++y) {
-            if (world_cell_alive(&the_game.w, x, y)) {
-                XChangeGC(display, gc, GCForeground, &gcv_green);
-            } else {
-                XChangeGC(display, gc, GCForeground, &gcv_white);
-            }
-            XFillRectangle(display, sprites, gc, 4 * (x - 20), 20 + 4 * y, 4, 4);
+            XChangeGC(d, g, GCForeground, world_cell_alive(&the_game.w, x, y) ? &B : &W);
+            XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
         }
     }
 
     srand(time(0));
     the_game = game_transition(NULL, 2);
 
-    for (;;) {
+    for (; ; ) {
         usleep(1000000 / 60);
 
-        while (XPending(display)) {
-            XEvent event;
-            XNextEvent(display, &event);
+        while (XPending(d)) {
+            XEvent v;
+            XNextEvent(d, &v);
     
-            the_game = game_transition(&the_game, e(the_game.s, event));
+            the_game = game_transition(&the_game, e(the_game.s, v));
         }
 
         if (! the_game.s) {
@@ -242,31 +233,31 @@ int main(void) {
             the_game = game_transition(&the_game, 4);
         }
 
-        XChangeGC(display, gc, GCForeground, &gcv_white);
-        XFillRectangle(display, pixmap, gc, 0, 0, 640, 480);
+        XChangeGC(d, g, GCForeground, &W);
+        XFillRectangle(d, b, g, 0, 0, 640, 480);
         for (int y = 0; y < 48; ++y) {
             int oy = y*20-the_game.dy;
             for (int x = 0; x < 48; ++x) {
                 int ox = x*20-the_game.dx;
                 if (world_cell_alive(&the_game.w, x, y)) {
-                    XCopyArea(display, sprites, pixmap, gc, 0, 0, 20, 20, ox, oy);
+                    XCopyArea(d, p, b, g, 0, 0, 20, 20, ox, oy);
                 }
             }
         }
         if (the_game.s % 2) {
-            XCopyArea(display, sprites, pixmap, gc, 0, 20*(pn + 1),
+            XCopyArea(d, p, b, g, 0, 20*(pn + 1),
                 20, 20, 100, 248);
-            ptick = (ptick + 1) % (int)(60 / 5);
+            ptick = (ptick + 1) % (60 / 5);
             if (ptick == 0) {
                 pn = (pn + 1) % 4;
             }
         }
 
-        XCopyArea(display, pixmap, window, gc, 0, 0, 640, 480, 0, 0);
-        XFlush(display);
+        XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);
+        XFlush(d);
     }
 
-    XCloseDisplay(display);
+    XCloseDisplay(d);
     return 0;
 }
 #endif
