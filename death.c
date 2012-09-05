@@ -10,9 +10,9 @@ typedef struct {
     unsigned char cells[288];
 } world;
 
-#define _o(x, y) ((x)*48+(y))
-#define world_cell_alive(w, x, y)  (((w)->cells[_o(x,y) / 8] & (1 << (_o(x,y) % 8))) ? 1 : 0)
-#define world_cell_set(w, x, y, b) (b) ? ((w)->cells[_o(x,y) / 8] |= (1 << (_o(x,y) % 8))) : ((w)->cells[_o(x,y) / 8] &= ~(1 << (_o(x,y) % 8)))
+#define B(x, y) ((x)*48+(y))
+#define A(w, x, y) (((w)->cells[B(x,y) / 8] & (1 << (B(x,y) % 8))) ? 1 : 0)
+#define S(w, x, y, b) (b) ? ((w)->cells[B(x,y) / 8] |= (1 << (B(x,y) % 8))) : ((w)->cells[B(x,y) / 8] &= ~(1 << (B(x,y) % 8)))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
@@ -21,7 +21,7 @@ short world_cell_living_neighbors(world *in, short x, short y) {
             for (int dy = -1; dy <= 1; ++dy) {
                 if ((y+dy >= 0) && (y+dy < 48)) {
                     if (! ((dx == 0) && (dy == 0))) {
-                        n += world_cell_alive(in, x+dx, y+dy);
+                        n += A(in, x+dx, y+dy);
                     }
                 }
             }
@@ -36,10 +36,10 @@ world world_step(world *in) {
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
-            if (world_cell_alive(in, x, y)) {
-                world_cell_set(&out, x, y, (n == 2) || (n == 3));
+            if (A(in, x, y)) {
+                S(&out, x, y, (n == 2) || (n == 3));
             } else {
-                world_cell_set(&out, x, y, n == 3);
+                S(&out, x, y, n == 3);
             }
         }
     }
@@ -53,9 +53,9 @@ world world_slide(world *in, short dx, short dy) {
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
             if ((x-dx >= 0) && (x-dx < 48) && (y-dy >= 0) && (y-dy < 48)) {
-                world_cell_set(&out, x, y, world_cell_alive(in, x-dx, y-dy));
+                S(&out, x, y, A(in, x-dx, y-dy));
             } else {
-                world_cell_set(&out, x, y, (rand() % 8) == 1);
+                S(&out, x, y, (rand() % 8) == 1);
             }
         }
     }
@@ -89,17 +89,15 @@ game game_transition(game *in, int s) {
     }
 
     if (s == 2) {
-        FILE *f = fopen("splash.dat", "r");
-        fread(&out.w, sizeof(world), 1, f);
-        fclose(f);
+        freopen("splash.dat", "r", stdin);
+        fread(&out.w, sizeof(world), 1, stdin);
     } else if (s == 4) {
-        FILE *f = fopen("dead.dat", "r");
-        fread(&out.w, sizeof(world), 1, f);
-        fclose(f);
+        freopen("dead.dat", "r", stdin);
+        fread(&out.w, sizeof(world), 1, stdin);
     } else {
         for (int x = 0; x < 48; ++x) {
             for (int y = 0; y < 48; ++y) {
-                world_cell_set(&out.w, x, y, 0);
+                S(&out.w, x, y, 0);
             }
         }
     }
@@ -157,7 +155,7 @@ game game_tick(game *in) {
     return out;
 }
 
-short game_collision(game *in) {
+int game_collision(game *in) {
     if (in->s % 2) {
         int ox, oy;
         for (ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
@@ -165,7 +163,7 @@ short game_collision(game *in) {
                 int x, y;
                 x = ox / 20;
                 y = oy / 20;
-                if (world_cell_alive(&in->w, x, y)) {
+                if (A(&in->w, x, y)) {
                     return 1;
                 }
             }
@@ -177,12 +175,11 @@ short game_collision(game *in) {
 #ifndef _TESTING
 int main(void) {
     Display *d = XOpenDisplay(NULL);
-    int s       = DefaultScreen(d);
-    Window w    = XCreateSimpleWindow(d, RootWindow(d, s),
-        40, 40, 640, 480, 3, 0, 0);
-    Pixmap b = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s));
-    Pixmap p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
-    GC g = DefaultGC(d, s);
+    int s      = DefaultScreen(d);
+    Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
+    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s));
+    Pixmap p   = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
+    GC g       = DefaultGC(d, s);
     XGCValues W, B;
     int ptick = 0, pn = 0;
 
@@ -193,20 +190,19 @@ int main(void) {
     W.foreground = WhitePixel(d, s);
     B.foreground = BlackPixel(d, s);
 
-    FILE *f = fopen("sprites.dat", "r");
-    fread(&the_game.w, sizeof(world), 1, f);
-    fclose(f);
+    freopen("sprites.dat", "r", stdin);
+    fread(&the_game.w, sizeof(world), 1, stdin);
 
     for (int x = 0; x < 20; ++x) {
         for (int y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, world_cell_alive(&the_game.w, x, y) ? &B : &W);
+            XChangeGC(d, g, GCForeground, A(&the_game.w, x, y) ? &B : &W);
             XDrawPoint(d, p, g, x, y);
         }
     }
 
     for (int x = 20; x < 20 + 5; ++x) {
         for (int y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, world_cell_alive(&the_game.w, x, y) ? &B : &W);
+            XChangeGC(d, g, GCForeground, A(&the_game.w, x, y) ? &B : &W);
             XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
         }
     }
@@ -239,15 +235,14 @@ int main(void) {
             int oy = y*20-the_game.dy;
             for (int x = 0; x < 48; ++x) {
                 int ox = x*20-the_game.dx;
-                if (world_cell_alive(&the_game.w, x, y)) {
+                if (A(&the_game.w, x, y)) {
                     XCopyArea(d, p, b, g, 0, 0, 20, 20, ox, oy);
                 }
             }
         }
         if (the_game.s % 2) {
-            XCopyArea(d, p, b, g, 0, 20*(pn + 1),
-                20, 20, 100, 248);
-            ptick = (ptick + 1) % (60 / 5);
+            XCopyArea(d, p, b, g, 0, 20*(pn + 1), 20, 20, 100, 248);
+            ptick = (ptick + 1) % 12;
             if (ptick == 0) {
                 pn = (pn + 1) % 4;
             }

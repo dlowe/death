@@ -23,3 +23,7 @@ nice to add:
  leave a trail
  background graphic layer
  in-game instructions
+
+obfuscations
+ magic numbers
+ arithmetic properties of magic numbers

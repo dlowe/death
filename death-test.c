@@ -22,7 +22,7 @@ void print_world(world *w, short width, short height) {
     int x, y;
     for (y = 0; y < height; ++y) {
         for (x = 0; x < width; ++x) {
-            printf("%c", world_cell_alive(w, x, y) ? 'O' : '_');
+            printf("%c", A(w, x, y) ? 'O' : '_');
         }
         printf("\n");
     }
@@ -34,14 +34,14 @@ world str_to_world(short width, char *in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, x, y, 0);
+            S(&out, x, y, 0);
         }
     }
 
     y = 0;
     while (in[width * y]) {
         for (x = 0; x < width; ++x) {
-            world_cell_set(&out, x, y, in[width * y + x] != '_');
+            S(&out, x, y, in[width * y + x] != '_');
         }
         ++y;
     }
@@ -171,7 +171,7 @@ short basic_world_assertions(world *in) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            short alive = world_cell_alive(in, x, y);
+            short alive = A(in, x, y);
             short n = world_cell_living_neighbors(in, x, y);
 
             if (! ((alive == 0) || (alive == 1))) {
@@ -190,7 +190,7 @@ short worlds_are_equal(world *w1, world *w2) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            if (world_cell_alive(w1, x, y) != world_cell_alive(w2, x, y)) {
+            if (A(w1, x, y) != A(w2, x, y)) {
                 return 0;
             }
         }
@@ -378,11 +378,11 @@ START_TEST (test_world_slide)
         for (short dy = -2; dy <= 2; ++dy) {
             world w1 = world_slide(&w0, dx, dy);
             fail_unless(basic_world_assertions(&w1), "slide basics");
-            fail_unless(world_cell_alive(&w1, ox+dx, oy+dy), "slide correct cell alive");
+            fail_unless(A(&w1, ox+dx, oy+dy), "slide correct cell alive");
             for (short tx = -1; tx <= 1; ++tx) {
                 for (short ty = -1; ty <= 1; ++ty) {
                     if (tx || ty) {
-                        fail_unless(! world_cell_alive(&w1, ox+dx+tx, oy+dy+ty), "slide correct cell dead");
+                        fail_unless(! A(&w1, ox+dx+tx, oy+dy+ty), "slide correct cell dead");
                     }
                 }
             }
@@ -397,7 +397,7 @@ START_TEST (test_game_tick)
     game g = game_transition(NULL, playing_nil);
     for (int x = 0; x < DIM; ++x) {
         for (int y = 0; y < DIM; ++y) {
-            world_cell_set(&g.w, x, y, (rand() % 8) == 1);
+            S(&g.w, x, y, (rand() % 8) == 1);
         }
     }
     for (i = 0; i < 30; ++i) {
