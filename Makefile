@@ -2,6 +2,10 @@ NAME := death
 CODE := $(NAME).c
 OBJ  := $(CODE:.c=.o)
 
+DNAME := $(NAME)-data
+DCODE := $(DNAME).c
+DATA  := dead.dat splash.dat
+
 TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c
 
@@ -34,11 +38,17 @@ static-test:
 test: $(TNAME)
 	./$(TNAME)
 
+$(DATA): $(DNAME)
+	./$(DNAME)
+
 $(NAME): static-test test $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
 
-$(TNAME): $(TCODE) $(OBJ)
+$(TNAME): $(DATA) $(TCODE) $(CODE)
 	$(CC) $(CFLAGS) -o $@ $(TCODE) $(LDFLAGS) -lcheck
+
+$(DNAME): $(DCODE) $(CODE)
+	$(CC) $(CFLAGS) -o $@ $(DCODE) $(LDFLAGS)
 
 .PHONY: clean
 clean:
@@ -46,3 +56,6 @@ clean:
 	rm -rf $(TNAME)
 	rm -rf prog.c prog
 	rm -rf $(TNAME).dSYM
+	rm -rf $(DNAME)
+	rm -rf $(DNAME).dSYM
+	rm -rf $(DATA)

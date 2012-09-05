@@ -4,6 +4,36 @@
 #define _TESTING
 #include "death.c"
 
+void print_world(world *w, short width, short height) {
+    int x, y;
+    for (y = 0; y < height; ++y) {
+        for (x = 0; x < width; ++x) {
+            printf("%c", world_cell_alive(w, DIM, x, y) ? 'O' : '_');
+        }
+        printf("\n");
+    }
+}
+
+world str_to_world(short width, char *in) {
+    int x, y;
+    world out;
+
+    for (x = 0; x < DIM; ++x) {
+        for (y = 0; y < DIM; ++y) {
+            world_cell_set(&out, DIM, x, y, 0);
+        }
+    }
+
+    y = 0;
+    while (in[width * y]) {
+        for (x = 0; x < width; ++x) {
+            world_cell_set(&out, DIM, x, y, in[width * y + x] != '_');
+        }
+        ++y;
+    }
+    return out;
+}
+
 START_TEST (test_event_handler)
 {
     int type;
@@ -192,16 +222,6 @@ START_TEST (test_game_new)
     fail_unless(worlds_are_equal(&g.w, &w), "dead rendered");
 }
 END_TEST
-
-void print_world(world *w, short width, short height) {
-    int x, y;
-    for (y = 0; y < height; ++y) {
-        for (x = 0; x < width; ++x) {
-            printf("%c", world_cell_alive(w, DIM, x, y) ? 'O' : '_');
-        }
-        printf("\n");
-    }
-}
 
 START_TEST (test_world_step_block)
 {
