@@ -69,44 +69,8 @@ typedef enum { quit, playing_nil, splash, playing_up, dead, playing_down } state
 #define state_playing(s) ((s) % 2)
 
 state event_handler(state in, XEvent event) {
-    switch (event.type) {
-        case KeyPress:
-            switch ((long)XLookupKeysym(&event.xkey, 0)) {
-                case XK_q:
-                    return quit;
-                case XK_Up:
-                    if (in != dead) {
-                        return playing_up;
-                    } else {
-                        return dead;
-                    }
-                case XK_Down:
-                    if (in != dead) {
-                        return playing_down;
-                    } else {
-                        return dead;
-                    }
-                default:
-                    if (in == splash) {
-                        return playing_nil;
-                    } else if (in == dead) {
-                        return splash;
-                    }
-            };
-        case KeyRelease:
-            switch ((long)XLookupKeysym(&event.xkey, 0)) {
-                case XK_Up:
-                    if (in == playing_up) {
-                        return playing_nil;
-                    }
-                    break;
-                case XK_Down:
-                    if (in == playing_down) {
-                        return playing_nil;
-                    }
-            };
-    };
-    return in;
+    long k;
+    return (event.type == KeyPress) ? ( ((k=XLookupKeysym(&event.xkey, 0)) == XK_q) ? quit :  ((k == XK_Up)   ? ((in == dead) ? in : playing_up) : ((k == XK_Down) ? ((in == dead) ? in : playing_down) : ((in == splash) ? playing_nil : ((in == dead) ? splash : in))))) : ((event.type == KeyRelease) ? (((k=XLookupKeysym(&event.xkey, 0)) == XK_Up) ? ((in == playing_up) ? playing_nil : in) : ((in == playing_down) ? playing_nil : in)) : in);
 }
 
 #define CELL_SIZE           20
