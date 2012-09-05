@@ -11,9 +11,9 @@ typedef struct {
     unsigned char cells[(DIM * DIM) / 8];
 } world;
 
-#define _o(x, y) ((x)*DIM+(y))
-#define world_cell_alive(w, x, y)  (((w)->cells[_o(x,y) / 8] & (1 << (_o(x,y) % 8))) ? 1 : 0)
-#define world_cell_set(w, x, y, b) (b) ? ((w)->cells[_o(x,y) / 8] |= (1 << (_o(x,y) % 8))) : ((w)->cells[_o(x,y) / 8] &= ~(1 << (_o(x,y) % 8)))
+#define _o(d, x, y) ((x)*d+(y))
+#define world_cell_alive(w, d, x, y)  (((w)->cells[_o(d,x,y) / 8] & (1 << (_o(d,x,y) % 8))) ? 1 : 0)
+#define world_cell_set(w, d, x, y, b) (b) ? ((w)->cells[_o(d,x,y) / 8] |= (1 << (_o(d,x,y) % 8))) : ((w)->cells[_o(d,x,y) / 8] &= ~(1 << (_o(d,x,y) % 8)))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
@@ -22,7 +22,7 @@ short world_cell_living_neighbors(world *in, short x, short y) {
             for (int dy = -1; dy <= 1; ++dy) {
                 if ((y+dy >= 0) && (y+dy < DIM)) {
                     if (! ((dx == 0) && (dy == 0))) {
-                        n += world_cell_alive(in, x+dx, y+dy);
+                        n += world_cell_alive(in, DIM, x+dx, y+dy);
                     }
                 }
             }
@@ -37,10 +37,10 @@ world world_step(world *in) {
     for (int x = 0; x < DIM; ++x) {
         for (int y = 0; y < DIM; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
-            if (world_cell_alive(in, x, y)) {
-                world_cell_set(&out, x, y, (n == 2) || (n == 3));
+            if (world_cell_alive(in, DIM, x, y)) {
+                world_cell_set(&out, DIM, x, y, (n == 2) || (n == 3));
             } else {
-                world_cell_set(&out, x, y, n == 3);
+                world_cell_set(&out, DIM, x, y, n == 3);
             }
         }
     }
@@ -54,9 +54,9 @@ world world_slide(world *in, short dx, short dy) {
     for (int x = 0; x < DIM; ++x) {
         for (int y = 0; y < DIM; ++y) {
             if ((x-dx >= 0) && (x-dx < DIM) && (y-dy >= 0) && (y-dy < DIM)) {
-                world_cell_set(&out, x, y, world_cell_alive(in, x-dx, y-dy));
+                world_cell_set(&out, DIM, x, y, world_cell_alive(in, DIM, x-dx, y-dy));
             } else {
-                world_cell_set(&out, x, y, (rand() % 8) == 1);
+                world_cell_set(&out, DIM, x, y, (rand() % 8) == 1);
             }
         }
     }
@@ -114,14 +114,14 @@ world str_to_world(short width, char *in) {
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
-            world_cell_set(&out, x, y, 0);
+            world_cell_set(&out, DIM, x, y, 0);
         }
     }
 
     y = 0;
     while (in[width * y]) {
         for (x = 0; x < width; ++x) {
-            world_cell_set(&out, x, y, in[width * y + x] != '_');
+            world_cell_set(&out, DIM, x, y, in[width * y + x] != '_');
         }
         ++y;
     }
@@ -204,7 +204,7 @@ game game_transition(game *in, state s) {
     } else {
         for (int x = 0; x < DIM; ++x) {
             for (int y = 0; y < DIM; ++y) {
-                world_cell_set(&out.w, x, y, 0);
+                world_cell_set(&out.w, x, DIM, y, 0);
             }
         }
     }
@@ -270,7 +270,7 @@ short game_collision(game *in) {
                 int x, y;
                 x = ox / CELL_SIZE;
                 y = oy / CELL_SIZE;
-                if (world_cell_alive(&in->w, x, y)) {
+                if (world_cell_alive(&in->w, DIM, x, y)) {
                     return 1;
                 }
             }
@@ -393,7 +393,7 @@ int main(void) {
             int oy = y*CELL_SIZE-the_game.dy;
             for (int x = 0; x < DIM; ++x) {
                 int ox = x*CELL_SIZE-the_game.dx;
-                if (world_cell_alive(&the_game.w, x, y)) {
+                if (world_cell_alive(&the_game.w, DIM, x, y)) {
                     XCopyArea(display, sprites, pixmap, gc, 0, 0, CELL_SIZE, CELL_SIZE, ox, oy);
                 }
             }
