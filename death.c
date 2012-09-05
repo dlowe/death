@@ -64,13 +64,9 @@ world world_slide(world *in, short dx, short dy) {
     return out;
 }
 
-typedef enum { quit, playing_nil, splash, playing_up, dead, playing_down } state;
-
-#define state_playing(s) ((s) % 2)
-
-state event_handler(state i, XEvent e) {
+int event_handler(int i, XEvent e) {
     long k;
-    return (e.type == KeyPress) ? ( ((k=XLookupKeysym(&e.xkey, 0)) == XK_q) ? quit :  ((k == XK_Up)   ? ((i == dead) ? i : playing_up) : ((k == XK_Down) ? ((i == dead) ? i : playing_down) : ((i == splash) ? playing_nil : ((i == dead) ? splash : i))))) : ((e.type == KeyRelease) ? (((k=XLookupKeysym(&e.xkey, 0)) == XK_Up) ? ((i == playing_up) ? playing_nil : i) : ((i == playing_down) ? playing_nil : i)) : i);
+    return (e.type == KeyPress) ? ( ((k=XLookupKeysym(&e.xkey, 0)) == XK_q) ? 0 :  ((k == XK_Up)   ? ((i == 4) ? i : 3) : ((k == XK_Down) ? ((i == 4) ? i : 5) : ((i == 2) ? 1 : ((i == 4) ? 2 : i))))) : ((e.type == KeyRelease) ? (((k=XLookupKeysym(&e.xkey, 0)) == XK_Up) ? ((i == 3) ? 1 : i) : ((i == 5) ? 1 : i)) : i);
 }
 
 #define CELL_SIZE           20
@@ -88,7 +84,7 @@ state event_handler(state i, XEvent e) {
 
 typedef struct {
     world w;
-    state s;
+    int s;
     int tick;
     int start_dy;
     int dx, dy;
@@ -97,21 +93,21 @@ typedef struct {
     float acceleration;
 } game;
 
-game game_transition(game *in, state s) {
+game game_transition(game *in, int s) {
     game out;
     if (in) {
         memcpy(&out, in, sizeof(game));
-        if ((in->s == s) || (state_playing(in->s) && state_playing(s))) {
+        if ((in->s == s) || ((in->s % 2) && (s % 2))) {
             out.s = s;
             return out;
         }
     }
 
-    if (s == splash) {
+    if (s == 2) {
         FILE *f = fopen("splash.dat", "r");
         fread(&out.w, sizeof(world), 1, f);
         fclose(f);
-    } else if (s == dead) {
+    } else if (s == 4) {
         FILE *f = fopen("dead.dat", "r");
         fread(&out.w, sizeof(world), 1, f);
         fclose(f);
@@ -123,7 +119,7 @@ game game_transition(game *in, state s) {
         }
     }
 
-    if (state_playing(s)) {
+    if (s % 2) {
         out.life_rate    = LIFE_RATE;
         out.speed        = SPEED_START;
         out.acceleration = SPEED_ZOOM;
@@ -153,10 +149,10 @@ game game_tick(game *in) {
     out.speed = in->speed + out.acceleration;
     out.dx = in->dx + out.speed;
 
-    if (in->s == playing_up) {
+    if (in->s == 3) {
         out.dy = in->dy - CONTROL_SENSITIVITY;
     }
-    if (in->s == playing_down) {
+    if (in->s == 5) {
         out.dy = in->dy + CONTROL_SENSITIVITY;
     }
 
@@ -177,7 +173,7 @@ game game_tick(game *in) {
 }
 
 short game_collision(game *in) {
-    if (state_playing(in->s)) {
+    if (in->s % 2) {
         int ox, oy;
         for (ox = in->dx + PLAYER_LEFT; ox < in->dx + PLAYER_LEFT + CELL_SIZE; ++ox) {
             for (oy = in->dy + PLAYER_TOP; oy < in->dy + PLAYER_TOP + CELL_SIZE; ++oy) {
@@ -241,7 +237,7 @@ int main(void) {
     }
 
     srand(time(0));
-    the_game = game_transition(NULL, splash);
+    the_game = game_transition(NULL, 2);
 
     for (;;) {
         usleep(1000000 / FRAME_RATE);
@@ -261,7 +257,7 @@ int main(void) {
         /* tick the game */
         the_game = game_tick(&the_game);
         if (game_collision(&the_game)) {
-            the_game = game_transition(&the_game, dead);
+            the_game = game_transition(&the_game, 4);
         }
 
         /* repaint into buffer */
@@ -276,7 +272,7 @@ int main(void) {
                 }
             }
         }
-        if (state_playing(the_game.s)) {
+        if (the_game.s % 2) {
             XCopyArea(display, sprites, pixmap, gc, 0, CELL_SIZE*(pn + 1),
                 CELL_SIZE, CELL_SIZE, PLAYER_LEFT, PLAYER_TOP);
             ptick = (ptick + 1) % (int)(FRAME_RATE / PLAYER_RATE);

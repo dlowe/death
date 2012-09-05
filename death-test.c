@@ -34,10 +34,19 @@ world str_to_world(short width, char *in) {
     return out;
 }
 
+#define quit 0
+#define playing_nil 1
+#define splash 2
+#define playing_up 3
+#define dead 4
+#define playing_down 5
+
+#define state_playing(s) ((s) % 2)
+
 START_TEST (test_event_handler)
 {
     int type;
-    state in;
+    int in;
     XEvent event;
     Display *display = XOpenDisplay(NULL);
 
