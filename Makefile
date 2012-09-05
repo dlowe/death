@@ -4,7 +4,7 @@ OBJ  := $(CODE:.c=.o)
 
 DNAME := $(NAME)-data
 DCODE := $(DNAME).c
-DATA  := dead.dat splash.dat
+DATA  := dead.dat splash.dat sprites.dat
 
 TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c

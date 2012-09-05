@@ -73,4 +73,33 @@ int main(void) {
         fwrite(&dead_world, sizeof(world), 1, f);
         fclose(f);
     }
+
+    {
+        char *cell_s =
+            "_OOOOOOOOOOOOOOOOOO_" "O__O_"
+            "OOOOOOOOOOOOOOOOOOOO" "____O"
+            "OOOOOOOOOOOOOOOOOOOO" "O___O"
+            "OOOOOOOOOOOOOOOOOOOO" "_OOOO"
+            "OOOOOOOOOOOOOOOOOOOO" "_____"
+            "OOOOOOOOOOOOOOOOOOOO" "_____"
+            "OOOOOOOOOOOOOOOOOOOO" "__OO_"
+            "OOOOOOOOOOOOOOOOOOOO" "OO_OO"
+            "OOOOOOOOOOOOOOOOOOOO" "OOOO_"
+            "OOOOOOOOOOOOOOOOOOOO" "_OO__"
+            "OOOOOOOOOOOOOOOOOOOO" "_____"
+            "OOOOOOOOOOOOOOOOOOOO" "_OOOO"
+            "OOOOOOOOOOOOOOOOOOOO" "O___O"
+            "OOOOOOOOOOOOOOOOOOOO" "____O"
+            "OOOOOOOOOOOOOOOOOOOO" "O__O_"
+            "OOOOOOOOOOOOOOOOOOOO" "_OO__"
+            "OOOOOOOOOOOOOOOOOOOO" "OOOO_"
+            "OOOOOOOOOOOOOOOOOOOO" "OO_OO"
+            "OOOOOOOOOOOOOOOOOOOO" "__OO_"
+            "_OOOOOOOOOOOOOOOOOO_" "_____";
+
+        world cell_world = str_to_world(25, cell_s);
+        FILE *f = fopen("sprites.dat", "w");
+        fwrite(&cell_world, sizeof(world), 1, f);
+        fclose(f);
+    }
 }

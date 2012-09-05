@@ -243,9 +243,6 @@ int main(void) {
 
     game the_game;
 
-    srand(time(0));
-    the_game = game_transition(NULL, splash);
-
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
     XMapWindow(display, window);
     gcv_white.foreground = WhitePixel(display, screen);
@@ -253,67 +250,34 @@ int main(void) {
     gcv_green.foreground = 0x00ff00;
 
     /* build a sprite for cells */
-    XChangeGC(display, gc, GCForeground, &gcv_black);
-    XFillRectangle(display, sprites, gc, 0, 0, CELL_SIZE, CELL_SIZE);
-    XChangeGC(display, gc, GCForeground, &gcv_white);
-    XDrawPoint(display, sprites, gc, 0, 0);
-    XDrawPoint(display, sprites, gc, 0, CELL_SIZE-1);
-    XDrawPoint(display, sprites, gc, CELL_SIZE-1, 0);
-    XDrawPoint(display, sprites, gc, CELL_SIZE-1, CELL_SIZE-1);
+    FILE *f = fopen("sprites.dat", "r");
+    fread(&the_game.w, sizeof(world), 1, f);
+    fclose(f);
 
-    /* build player sprites */
-    XFillRectangle(display, sprites, gc, 0, CELL_SIZE, CELL_SIZE, CELL_SIZE*PLAYER_LOOP);
-    XChangeGC(display, gc, GCForeground, &gcv_green);
+    for (int x = 0; x < CELL_SIZE; ++x) {
+        for (int y = 0; y < CELL_SIZE; ++y) {
+            if (world_cell_alive(&the_game.w, DIM, x, y)) {
+                XChangeGC(display, gc, GCForeground, &gcv_black);
+            } else {
+                XChangeGC(display, gc, GCForeground, &gcv_white);
+            }
+            XDrawPoint(display, sprites, gc, x, y);
+        }
+    }
 
-    /* 0 */
-    XFillRectangle(display, sprites, gc,  0, CELL_SIZE+ 0, 4, 4);
-    XFillRectangle(display, sprites, gc,  0, CELL_SIZE+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, CELL_SIZE+12, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, CELL_SIZE+12, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, CELL_SIZE+ 0, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, CELL_SIZE+12, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, CELL_SIZE+12, 4, 4);
+    for (int x = CELL_SIZE; x < CELL_SIZE + 5; ++x) {
+        for (int y = 0; y < CELL_SIZE; ++y) {
+            if (world_cell_alive(&the_game.w, DIM, x, y)) {
+                XChangeGC(display, gc, GCForeground, &gcv_green);
+            } else {
+                XChangeGC(display, gc, GCForeground, &gcv_white);
+            }
+            XFillRectangle(display, sprites, gc, 4 * (x - CELL_SIZE), CELL_SIZE + 4 * y, 4, 4);
+        }
+    }
 
-    /* 1 */
-    XFillRectangle(display, sprites, gc,  0, (2*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  0, (2*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (2*CELL_SIZE)+16, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (2*CELL_SIZE)+16, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (2*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, (2*CELL_SIZE)+ 8, 4, 4);
-
-    /* 2 */
-    XFillRectangle(display, sprites, gc,  0, (3*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  0, (3*CELL_SIZE)+16, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (3*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (3*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (3*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (3*CELL_SIZE)+16, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, (3*CELL_SIZE)+12, 4, 4);
-
-    /* 3 */
-    XFillRectangle(display, sprites, gc,  0, (4*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc,  0, (4*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 0, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc,  4, (4*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+ 0, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc,  8, (4*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+ 4, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+ 8, 4, 4);
-    XFillRectangle(display, sprites, gc, 12, (4*CELL_SIZE)+12, 4, 4);
-    XFillRectangle(display, sprites, gc, 16, (4*CELL_SIZE)+ 8, 4, 4);
+    srand(time(0));
+    the_game = game_transition(NULL, splash);
 
     for (;;) {
         usleep(1000000 / FRAME_RATE);
