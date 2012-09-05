@@ -68,9 +68,9 @@ typedef enum { quit, playing_nil, splash, playing_up, dead, playing_down } state
 
 #define state_playing(s) ((s) % 2)
 
-state event_handler(state in, XEvent event) {
+state event_handler(state i, XEvent e) {
     long k;
-    return (event.type == KeyPress) ? ( ((k=XLookupKeysym(&event.xkey, 0)) == XK_q) ? quit :  ((k == XK_Up)   ? ((in == dead) ? in : playing_up) : ((k == XK_Down) ? ((in == dead) ? in : playing_down) : ((in == splash) ? playing_nil : ((in == dead) ? splash : in))))) : ((event.type == KeyRelease) ? (((k=XLookupKeysym(&event.xkey, 0)) == XK_Up) ? ((in == playing_up) ? playing_nil : in) : ((in == playing_down) ? playing_nil : in)) : in);
+    return (e.type == KeyPress) ? ( ((k=XLookupKeysym(&e.xkey, 0)) == XK_q) ? quit :  ((k == XK_Up)   ? ((i == dead) ? i : playing_up) : ((k == XK_Down) ? ((i == dead) ? i : playing_down) : ((i == splash) ? playing_nil : ((i == dead) ? splash : i))))) : ((e.type == KeyRelease) ? (((k=XLookupKeysym(&e.xkey, 0)) == XK_Up) ? ((i == playing_up) ? playing_nil : i) : ((i == playing_down) ? playing_nil : i)) : i);
 }
 
 #define CELL_SIZE           20
