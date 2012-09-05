@@ -64,9 +64,9 @@ world world_slide(world *in, short dx, short dy) {
     return out;
 }
 
-int event_handler(int i, XEvent e) {
+int e(int i, XEvent e) {
     long k;
-    return (e.type == KeyPress) ? ( ((k=XLookupKeysym(&e.xkey, 0)) == XK_q) ? 0 :  ((k == XK_Up)   ? ((i == 4) ? i : 3) : ((k == XK_Down) ? ((i == 4) ? i : 5) : ((i == 2) ? 1 : ((i == 4) ? 2 : i))))) : ((e.type == KeyRelease) ? (((k=XLookupKeysym(&e.xkey, 0)) == XK_Up) ? ((i == 3) ? 1 : i) : ((i == 5) ? 1 : i)) : i);
+    return e.type == KeyPress ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (i == 4 ? i : 3) : (k == XK_Down ? (i == 4 ? i : 5) : (i == 2 ? 1 : (i == 4 ? 2 : i))))) : (e.type == KeyRelease ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_Up ? (i == 3 ? 1 : i) : (i == 5 ? 1 : i)) : i);
 }
 
 #define CELL_SIZE           20
@@ -209,7 +209,6 @@ int main(void) {
     gcv_black.foreground = BlackPixel(display, screen);
     gcv_green.foreground = 0x00ff00;
 
-    /* build a sprite for cells */
     FILE *f = fopen("sprites.dat", "r");
     fread(&the_game.w, sizeof(world), 1, f);
     fclose(f);
@@ -242,25 +241,22 @@ int main(void) {
     for (;;) {
         usleep(1000000 / FRAME_RATE);
 
-        /* X11 events */
         while (XPending(display)) {
             XEvent event;
             XNextEvent(display, &event);
     
-            the_game = game_transition(&the_game, event_handler(the_game.s, event));
+            the_game = game_transition(&the_game, e(the_game.s, event));
         }
 
         if (! the_game.s) {
             break;
         }
 
-        /* tick the game */
         the_game = game_tick(&the_game);
         if (game_collision(&the_game)) {
             the_game = game_transition(&the_game, 4);
         }
 
-        /* repaint into buffer */
         XChangeGC(display, gc, GCForeground, &gcv_white);
         XFillRectangle(display, pixmap, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         for (int y = 0; y < DIM; ++y) {
@@ -281,7 +277,6 @@ int main(void) {
             }
         }
 
-        /* copy buffer & flush */
         XCopyArea(display, pixmap, window, gc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
         XFlush(display);
     }
