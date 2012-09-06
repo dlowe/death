@@ -126,9 +126,8 @@ G gi(G *in) {
 
 int game_collision(G *in) {
     if (in->s % 2) {
-        int ox, oy;
-        for (ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
-            for (oy = in->dy + 248; oy < in->dy + 248 + 20; ++oy) {
+        for (int ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
+            for (int oy = in->dy + 248; oy < in->dy + 248 + 20; ++oy) {
                 int x, y;
                 x = ox / 20;
                 y = oy / 20;
