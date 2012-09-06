@@ -14,13 +14,13 @@ typedef struct {
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 
-short world_cell_living_neighbors(world *in, short x, short y) {
-    short n = 0;
+int world_cell_living_neighbors(world *in, int x, int y) {
+    int n = 0;
     for (int dx = -1; dx <= 1; ++dx) {
         if ((x+dx >= 0) && (x+dx < 48)) {
             for (int dy = -1; dy <= 1; ++dy) {
                 if ((y+dy >= 0) && (y+dy < 48)) {
-                    if (! ((dx == 0) && (dy == 0))) {
+                    if (dx || dy) {
                         n += A(in, x+dx, y+dy);
                     }
                 }
@@ -35,7 +35,7 @@ world world_step(world *in) {
 
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
-            short n = world_cell_living_neighbors(in, x, y);
+            int n = world_cell_living_neighbors(in, x, y);
 
             S(&out, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
         }
@@ -44,7 +44,7 @@ world world_step(world *in) {
     return out;
 }
 
-world world_slide(world *in, short dx, short dy) {
+world world_slide(world *in, int dx, int dy) {
     world out;
 
     for (int x = 0; x < 48; ++x) {
@@ -62,7 +62,7 @@ int e(int i, XEvent e) {
 
 typedef struct {
     world w;
-    int s, t, start_dy, dx, dy;
+    int s, t, y, dx, dy;
     float life_rate, speed, acceleration;
 } G;
 
@@ -93,7 +93,7 @@ G game_transition(G *in, int s) {
     o.life_rate = s % 2 ? 2 : 0.5;
     o.speed     = s % 2;
     o.acceleration = s % 2 ? 0.002 : 0;
-    o.dy = o.start_dy     = s % 2 ? 240 : 0;
+    o.dy = o.y     = s % 2 ? 240 : 0;
     o.t  = 1;
     o.dx    = 0;
     o.s     = s;
@@ -116,12 +116,12 @@ G game_tick(G *in) {
         o.dx = 0;
         o.w = world_slide(&o.w, -8, 0);
     }
-    if (o.dy - o.start_dy >= 160) {
-        o.dy = o.start_dy;
+    if (o.dy - o.y >= 160) {
+        o.dy = o.y;
         o.w  = world_slide(&o.w, 0, -8);
     }
-    if (o.dy - o.start_dy <= -160) {
-        o.dy = o.start_dy;
+    if (o.dy - o.y <= -160) {
+        o.dy = o.y;
         o.w  = world_slide(&o.w, 0, 8);
     }
 
