@@ -402,7 +402,7 @@ START_TEST (test_game_tick)
     }
     for (i = 0; i < 30; ++i) {
         G gnext = game_tick(&g);
-        if (g.tick == 0) {
+        if (g.t == 0) {
             /* step, so worlds should no longer be equal */
             fail_unless(! worlds_are_equal(&g.w, &gnext.w), "unequal after step");
         } else {

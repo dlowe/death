@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 typedef struct {
-    unsigned char c[288];
+    char c[288];
 } world;
 
 #define B(x, y) ((x)*48+(y))
@@ -69,7 +69,7 @@ int e(int i, XEvent e) {
 
 typedef struct {
     world w;
-    int s, tick, start_dy, dx, dy;
+    int s, t, start_dy, dx, dy;
     float life_rate, speed, acceleration;
 } G;
 
@@ -85,10 +85,10 @@ G game_transition(G *in, int s) {
 
     if (s == 2) {
         freopen("2.d", "r", stdin);
-        fread(&o.w, sizeof(world), 1, stdin);
+        fread(&o.w, 288, 1, stdin);
     } else if (s == 4) {
         freopen("1.d", "r", stdin);
-        fread(&o.w, sizeof(world), 1, stdin);
+        fread(&o.w, 288, 1, stdin);
     } else {
         for (int x = 0; x < 48; ++x) {
             for (int y = 0; y < 48; ++y) {
@@ -101,7 +101,7 @@ G game_transition(G *in, int s) {
     o.speed     = s % 2;
     o.acceleration = s % 2 ? 0.002 : 0;
     o.dy = o.start_dy     = s % 2 ? 240 : 0;
-    o.tick  = 1;
+    o.t  = 1;
     o.dx    = 0;
     o.s     = s;
 
@@ -111,10 +111,10 @@ G game_transition(G *in, int s) {
 G game_tick(G *in) {
     G o = *in;
 
-    if (o.tick == 0) {
+    if (o.t == 0) {
         o.w = world_step(&o.w);
     }
-    o.tick = (o.tick + 1) % (int)(60 / o.life_rate);
+    o.t = (o.t + 1) % (int)(60 / o.life_rate);
     o.speed += o.acceleration;
     o.dx += o.speed;
     o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
@@ -161,7 +161,7 @@ int main(void) {
     Pixmap p   = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
-    int ptick = 0, pn = 0;
+    int P = 0, Q = 0;
 
     G t;
 
@@ -171,7 +171,7 @@ int main(void) {
     B.foreground = BlackPixel(d, s);
 
     freopen("0.d", "r", stdin);
-    fread(&t.w, sizeof(world), 1, stdin);
+    fread(&t.w, 288, 1, stdin);
 
     for (int x = 0; x < 20; ++x) {
         for (int y = 0; y < 20; ++y) {
@@ -221,10 +221,10 @@ int main(void) {
             }
         }
         if (t.s % 2) {
-            XCopyArea(d, p, b, g, 0, 20*(pn + 1), 20, 20, 100, 248);
-            ptick = (ptick + 1) % 12;
-            if (ptick == 0) {
-                pn = (pn + 1) % 4;
+            XCopyArea(d, p, b, g, 0, 20*(Q + 1), 20, 20, 100, 248);
+            P = (P + 1) % 12;
+            if (P == 0) {
+                Q = (Q + 1) % 4;
             }
         }
 
