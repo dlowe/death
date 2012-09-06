@@ -122,37 +122,30 @@ game game_transition(game *in, int s) {
 }
 
 game game_tick(game *in) {
-    game out;
+    game o = *in;
 
-    out = *in;
-    if (in->tick == 0) {
-        out.w = world_step(&in->w);
+    if (o.tick == 0) {
+        o.w = world_step(&o.w);
     }
-    out.tick = (in->tick + 1) % (int)(60 / out.life_rate);
-    out.speed = in->speed + out.acceleration;
-    out.dx = in->dx + out.speed;
+    o.tick = (o.tick + 1) % (int)(60 / o.life_rate);
+    o.speed += o.acceleration;
+    o.dx += o.speed;
+    o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
 
-    if (in->s == 3) {
-        out.dy = in->dy - 2;
+    if (o.dx >= 160) {
+        o.dx = 0;
+        o.w = world_slide(&o.w, -8, 0);
     }
-    if (in->s == 5) {
-        out.dy = in->dy + 2;
+    if (o.dy - o.start_dy >= 160) {
+        o.dy = o.start_dy;
+        o.w  = world_slide(&o.w, 0, -8);
     }
-
-    if (out.dx >= (8 * 20)) {
-        out.dx = 0;
-        out.w = world_slide(&in->w, -8, 0);
-    }
-    if (out.dy - out.start_dy >= (8 * 20)) {
-        out.dy = out.start_dy;
-        out.w  = world_slide(&in->w, 0, -8);
-    }
-    if (out.dy - out.start_dy <= -(8 * 20)) {
-        out.dy = out.start_dy;
-        out.w  = world_slide(&in->w, 0, 8);
+    if (o.dy - o.start_dy <= -160) {
+        o.dy = o.start_dy;
+        o.w  = world_slide(&o.w, 0, 8);
     }
 
-    return out;
+    return o;
 }
 
 int game_collision(game *in) {
