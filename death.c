@@ -124,8 +124,8 @@ G gi(G *in) {
 
 int game_collision(G *in) {
     if (in->s % 2) {
-        for (int ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
-            for (int oy = in->dy + 248; oy < in->dy + 248 + 20; ++oy) {
+        for (int ox = in->dx + 100; ox < in->dx + 120; ++ox) {
+            for (int oy = in->dy + 248; oy < in->dy + 268; ++oy) {
                 int x, y;
                 x = ox / 20;
                 y = oy / 20;
@@ -164,7 +164,7 @@ int main(void) {
         }
     }
 
-    for (x = 20; x < 20 + 5; ++x) {
+    for (x = 20; x < 25; ++x) {
         for (y = 0; y < 20; ++y) {
             XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
             XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
