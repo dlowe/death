@@ -207,7 +207,7 @@ int main(void) {
         if (t.s % 2) {
             XCopyArea(d, p, b, g, 0, 20*(Q + 1), 20, 20, 100, 248);
             P = (P + 1) % 12;
-            if (P == 0) {
+            if (! P) {
                 Q = (Q + 1) % 4;
             }
         }
