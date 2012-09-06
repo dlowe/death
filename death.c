@@ -36,11 +36,8 @@ world world_step(world *in) {
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
             short n = world_cell_living_neighbors(in, x, y);
-            if (A(in, x, y)) {
-                S(&out, x, y, (n == 2) || (n == 3));
-            } else {
-                S(&out, x, y, n == 3);
-            }
+
+            S(&out, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
         }
     }
 
@@ -52,11 +49,7 @@ world world_slide(world *in, short dx, short dy) {
 
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
-            if ((x-dx >= 0) && (x-dx < 48) && (y-dy >= 0) && (y-dy < 48)) {
-                S(&out, x, y, A(in, x-dx, y-dy));
-            } else {
-                S(&out, x, y, (rand() % 8) == 1);
-            }
+            S(&out, x, y, ((x-dx >= 0) && (x-dx < 48) && (y-dy >= 0) && (y-dy < 48)) ? A(in, x-dx, y-dy) : ((rand() % 8) == 1));
         }
     }
     return out;
