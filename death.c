@@ -66,7 +66,7 @@ typedef struct {
     float life_rate, speed, acceleration;
 } G;
 
-G game_transition(G *in, int s) {
+G gt(G *in, int s) {
     G o;
     if (in) {
         o = *in;
@@ -101,7 +101,7 @@ G game_transition(G *in, int s) {
     return o;
 }
 
-G game_tick(G *in) {
+G gi(G *in) {
     G o = *in;
 
     if (o.t == 0) {
@@ -181,7 +181,7 @@ int main(void) {
     }
 
     srand(time(0));
-    t = game_transition(NULL, 2);
+    t = gt(NULL, 2);
 
     for (; ; ) {
         usleep(16666);
@@ -190,16 +190,16 @@ int main(void) {
             XEvent v;
             XNextEvent(d, &v);
     
-            t = game_transition(&t, e(t.s, v));
+            t = gt(&t, e(t.s, v));
         }
 
         if (! t.s) {
             break;
         }
 
-        t = game_tick(&t);
+        t = gi(&t);
         if (game_collision(&t)) {
-            t = game_transition(&t, 4);
+            t = gt(&t, 4);
         }
 
         XChangeGC(d, g, GCForeground, &W);

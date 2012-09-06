@@ -200,7 +200,7 @@ short worlds_are_equal(world *w1, world *w2) {
 
 START_TEST (test_game_new)
 {
-    G g = game_transition(NULL, splash);
+    G g = gt(NULL, splash);
     fail_unless(basic_world_assertions(&g.w), "splash basics");
 
     char *splash_s =
@@ -228,7 +228,7 @@ START_TEST (test_game_new)
     fail_unless(g.dy == 0, "dy is 0");
     fail_unless(worlds_are_equal(&g.w, &w), "splash rendered");
 
-    g = game_transition(NULL, dead);
+    g = gt(NULL, dead);
     fail_unless(basic_world_assertions(&g.w), "dead basics");
 
     char *dead_s =
@@ -391,17 +391,17 @@ START_TEST (test_world_slide)
 }
 END_TEST
 
-START_TEST (test_game_tick)
+START_TEST (test_gi)
 {
     int i;
-    G g = game_transition(NULL, playing_nil);
+    G g = gt(NULL, playing_nil);
     for (int x = 0; x < DIM; ++x) {
         for (int y = 0; y < DIM; ++y) {
             S(&g.w, x, y, (rand() % 8) == 1);
         }
     }
     for (i = 0; i < 30; ++i) {
-        G gnext = game_tick(&g);
+        G gnext = gi(&g);
         if (g.t == 0) {
             /* step, so worlds should no longer be equal */
             fail_unless(! worlds_are_equal(&g.w, &gnext.w), "unequal after step");
@@ -433,7 +433,7 @@ int main(void) {
     tcase_add_test(tc, test_world_step_glider);
     tcase_add_test(tc, test_world_slide);
     tcase_add_test(tc, test_game_new);
-    tcase_add_test(tc, test_game_tick);
+    tcase_add_test(tc, test_gi);
 
     suite = suite_create("death");
     suite_add_tcase(suite, tc);
