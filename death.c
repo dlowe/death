@@ -40,15 +40,14 @@ world world_step(world *in) {
     return out;
 }
 
-world world_slide(world *in, int dx, int dy) {
-    world out;
-
+world ws(world *in, int a, int b) {
+    world o;
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
-            S(&out, x, y, ((x-dx >= 0) && (x-dx < 48) && (y-dy >= 0) && (y-dy < 48)) ? A(in, x-dx, y-dy) : ((rand() % 8) == 1));
+            S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1));
         }
     }
-    return out;
+    return o;
 }
 
 int e(int i, XEvent e) {
@@ -59,7 +58,7 @@ int e(int i, XEvent e) {
 typedef struct {
     world w;
     int s, t, y, dx, dy;
-    float life_rate, speed, acceleration;
+    float l, p, a;
 } G;
 
 G gt(G *in, int s) {
@@ -86,9 +85,9 @@ G gt(G *in, int s) {
         }
     }
 
-    o.life_rate = s % 2 ? 2 : 0.5;
-    o.speed     = s % 2;
-    o.acceleration = s % 2 ? 0.002 : 0;
+    o.l = s % 2 ? 2 : 0.5;
+    o.p     = s % 2;
+    o.a = s % 2 ? 0.002 : 0;
     o.dy = o.y     = s % 2 ? 240 : 0;
     o.t  = 1;
     o.dx    = 0;
@@ -103,22 +102,22 @@ G gi(G *in) {
     if (o.t == 0) {
         o.w = world_step(&o.w);
     }
-    o.t = (o.t + 1) % (int)(60 / o.life_rate);
-    o.speed += o.acceleration;
-    o.dx += o.speed;
+    o.t = (o.t + 1) % (int)(60 / o.l);
+    o.p += o.a;
+    o.dx += o.p;
     o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
 
     if (o.dx >= 160) {
         o.dx = 0;
-        o.w = world_slide(&o.w, -8, 0);
+        o.w = ws(&o.w, -8, 0);
     }
     if (o.dy - o.y >= 160) {
         o.dy = o.y;
-        o.w  = world_slide(&o.w, 0, -8);
+        o.w  = ws(&o.w, 0, -8);
     }
     if (o.dy - o.y <= -160) {
         o.dy = o.y;
-        o.w  = world_slide(&o.w, 0, 8);
+        o.w  = ws(&o.w, 0, 8);
     }
 
     return o;
@@ -145,12 +144,10 @@ int main(void) {
     Display *d = XOpenDisplay(NULL);
     int s      = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s));
-    Pixmap p   = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
+    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
-    int P = 0, Q = 0;
-
+    int P = 0, Q = 0, x, y;
     G t;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
@@ -161,15 +158,15 @@ int main(void) {
     freopen("0.d", "r", stdin);
     fread(&t.w, 288, 1, stdin);
 
-    for (int x = 0; x < 20; ++x) {
-        for (int y = 0; y < 20; ++y) {
+    for (x = 0; x < 20; ++x) {
+        for (y = 0; y < 20; ++y) {
             XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
             XDrawPoint(d, p, g, x, y);
         }
     }
 
-    for (int x = 20; x < 20 + 5; ++x) {
-        for (int y = 0; y < 20; ++y) {
+    for (x = 20; x < 20 + 5; ++x) {
+        for (y = 0; y < 20; ++y) {
             XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
             XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
         }
@@ -199,9 +196,9 @@ int main(void) {
 
         XChangeGC(d, g, GCForeground, &W);
         XFillRectangle(d, b, g, 0, 0, 640, 480);
-        for (int y = 0; y < 48; ++y) {
+        for (y = 0; y < 48; ++y) {
             int oy = y*20-t.dy;
-            for (int x = 0; x < 48; ++x) {
+            for (x = 0; x < 48; ++x) {
                 int ox = x*20-t.dx;
                 if (A(&t.w, x, y)) {
                     XCopyArea(d, p, b, g, 0, 0, 20, 20, ox, oy);

@@ -357,7 +357,7 @@ START_TEST (test_world_step_glider)
 }
 END_TEST
 
-START_TEST (test_world_slide)
+START_TEST (test_ws)
 {
     short ox = 3, oy = 3;
     char *t =
@@ -372,7 +372,7 @@ START_TEST (test_world_slide)
     world w0 = str_to_world(7, t);
     for (short dx = -2; dx <= 2; ++dx) {
         for (short dy = -2; dy <= 2; ++dy) {
-            world w1 = world_slide(&w0, dx, dy);
+            world w1 = ws(&w0, dx, dy);
             fail_unless(basic_world_assertions(&w1), "slide basics");
             fail_unless(A(&w1, ox+dx, oy+dy), "slide correct cell alive");
             for (short tx = -1; tx <= 1; ++tx) {
@@ -405,9 +405,9 @@ START_TEST (test_gi)
             /* no step, so worlds should be equal */
             fail_unless(worlds_are_equal(&g.w, &gnext.w), "equal after !step");
         }
-        fail_unless((gnext.speed - (g.speed + SPEED_ZOOM)) < 0.00001, "speed increased");
+        fail_unless((gnext.p - (g.p + SPEED_ZOOM)) < 0.00001, "speed increased");
         fail_unless(gnext.dy == g.dy, "dy constant");
-        fail_unless(gnext.dx == (int)(g.dx + gnext.speed), "dx increased");
+        fail_unless(gnext.dx == (int)(g.dx + gnext.p), "dx increased");
         fail_unless(gnext.s == g.s, "state constant");
         g = gnext;
     }
@@ -427,7 +427,7 @@ int main(void) {
     tcase_add_test(tc, test_world_step_beehive);
     tcase_add_test(tc, test_world_step_blinker);
     tcase_add_test(tc, test_world_step_glider);
-    tcase_add_test(tc, test_world_slide);
+    tcase_add_test(tc, test_ws);
     tcase_add_test(tc, test_game_new);
     tcase_add_test(tc, test_gi);
 
