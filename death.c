@@ -14,28 +14,24 @@ typedef struct {
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 
-int world_cell_living_neighbors(world *in, int x, int y) {
-    int n = 0;
-    for (int dx = -1; dx <= 1; ++dx) {
-        if ((x+dx >= 0) && (x+dx < 48)) {
-            for (int dy = -1; dy <= 1; ++dy) {
-                if ((y+dy >= 0) && (y+dy < 48)) {
-                    if (dx || dy) {
-                        n += A(in, x+dx, y+dy);
-                    }
-                }
-            }
-        }
-    }
-    return n;
-}
-
 world world_step(world *in) {
     world out;
 
     for (int x = 0; x < 48; ++x) {
         for (int y = 0; y < 48; ++y) {
-            int n = world_cell_living_neighbors(in, x, y);
+            int n = 0;
+
+            for (int dx = -1; dx <= 1; ++dx) {
+                if ((x+dx >= 0) && (x+dx < 48)) {
+                    for (int dy = -1; dy <= 1; ++dy) {
+                        if ((y+dy >= 0) && (y+dy < 48)) {
+                            if (dx || dy) {
+                                n += A(in, x+dx, y+dy);
+                            }
+                        }
+                    }
+                }
+            }
 
             S(&out, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
         }

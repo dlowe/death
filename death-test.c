@@ -172,15 +172,11 @@ short basic_world_assertions(world *in) {
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
             short alive = A(in, x, y);
-            short n = world_cell_living_neighbors(in, x, y);
 
             if (! ((alive == 0) || (alive == 1))) {
                 return 0;
             }
 
-            if ((n < 0) || (n > 8)) {
-                return 0;
-            }
         }
     }
     return 1;
