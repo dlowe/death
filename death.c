@@ -71,10 +71,10 @@ typedef struct {
     world w;
     int s, tick, start_dy, dx, dy;
     float life_rate, speed, acceleration;
-} game;
+} G;
 
-game game_transition(game *in, int s) {
-    game o;
+G game_transition(G *in, int s) {
+    G o;
     if (in) {
         o = *in;
         if ((in->s == s) || ((in->s % 2) && (s % 2))) {
@@ -108,8 +108,8 @@ game game_transition(game *in, int s) {
     return o;
 }
 
-game game_tick(game *in) {
-    game o = *in;
+G game_tick(G *in) {
+    G o = *in;
 
     if (o.tick == 0) {
         o.w = world_step(&o.w);
@@ -135,7 +135,7 @@ game game_tick(game *in) {
     return o;
 }
 
-int game_collision(game *in) {
+int game_collision(G *in) {
     if (in->s % 2) {
         int ox, oy;
         for (ox = in->dx + 100; ox < in->dx + 100 + 20; ++ox) {
@@ -163,7 +163,7 @@ int main(void) {
     XGCValues W, B;
     int ptick = 0, pn = 0;
 
-    game the_game;
+    G t;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
     XMapWindow(d, w);
@@ -171,24 +171,24 @@ int main(void) {
     B.foreground = BlackPixel(d, s);
 
     freopen("0.d", "r", stdin);
-    fread(&the_game.w, sizeof(world), 1, stdin);
+    fread(&t.w, sizeof(world), 1, stdin);
 
     for (int x = 0; x < 20; ++x) {
         for (int y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, A(&the_game.w, x, y) ? &B : &W);
+            XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
             XDrawPoint(d, p, g, x, y);
         }
     }
 
     for (int x = 20; x < 20 + 5; ++x) {
         for (int y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, A(&the_game.w, x, y) ? &B : &W);
+            XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
             XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
         }
     }
 
     srand(time(0));
-    the_game = game_transition(NULL, 2);
+    t = game_transition(NULL, 2);
 
     for (; ; ) {
         usleep(16666);
@@ -197,30 +197,30 @@ int main(void) {
             XEvent v;
             XNextEvent(d, &v);
     
-            the_game = game_transition(&the_game, e(the_game.s, v));
+            t = game_transition(&t, e(t.s, v));
         }
 
-        if (! the_game.s) {
+        if (! t.s) {
             break;
         }
 
-        the_game = game_tick(&the_game);
-        if (game_collision(&the_game)) {
-            the_game = game_transition(&the_game, 4);
+        t = game_tick(&t);
+        if (game_collision(&t)) {
+            t = game_transition(&t, 4);
         }
 
         XChangeGC(d, g, GCForeground, &W);
         XFillRectangle(d, b, g, 0, 0, 640, 480);
         for (int y = 0; y < 48; ++y) {
-            int oy = y*20-the_game.dy;
+            int oy = y*20-t.dy;
             for (int x = 0; x < 48; ++x) {
-                int ox = x*20-the_game.dx;
-                if (A(&the_game.w, x, y)) {
+                int ox = x*20-t.dx;
+                if (A(&t.w, x, y)) {
                     XCopyArea(d, p, b, g, 0, 0, 20, 20, ox, oy);
                 }
             }
         }
-        if (the_game.s % 2) {
+        if (t.s % 2) {
             XCopyArea(d, p, b, g, 0, 20*(pn + 1), 20, 20, 100, 248);
             ptick = (ptick + 1) % 12;
             if (ptick == 0) {

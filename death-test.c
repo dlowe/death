@@ -200,7 +200,7 @@ short worlds_are_equal(world *w1, world *w2) {
 
 START_TEST (test_game_new)
 {
-    game g = game_transition(NULL, splash);
+    G g = game_transition(NULL, splash);
     fail_unless(basic_world_assertions(&g.w), "splash basics");
 
     char *splash_s =
@@ -394,14 +394,14 @@ END_TEST
 START_TEST (test_game_tick)
 {
     int i;
-    game g = game_transition(NULL, playing_nil);
+    G g = game_transition(NULL, playing_nil);
     for (int x = 0; x < DIM; ++x) {
         for (int y = 0; y < DIM; ++y) {
             S(&g.w, x, y, (rand() % 8) == 1);
         }
     }
     for (i = 0; i < 30; ++i) {
-        game gnext = game_tick(&g);
+        G gnext = game_tick(&g);
         if (g.tick == 0) {
             /* step, so worlds should no longer be equal */
             fail_unless(! worlds_are_equal(&g.w, &gnext.w), "unequal after step");
