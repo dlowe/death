@@ -102,17 +102,10 @@ game game_transition(game *in, int s) {
         }
     }
 
-    if (s % 2) {
-        out.life_rate    = 2;
-        out.speed        = 1;
-        out.acceleration = 0.002;
-        out.start_dy     = ((48*20) / 2) - (480 / 2);
-    } else {
-        out.life_rate    = 0.5;
-        out.speed        = 0;
-        out.acceleration = 0;
-        out.start_dy     = 0;
-    }
+    out.life_rate = s % 2 ? 2 : 0.5;
+    out.speed     = s % 2;
+    out.acceleration = s % 2 ? 0.002 : 0;
+    out.start_dy     = s % 2 ? 240 : 0;
     out.tick  = 1;
     out.dy    = out.start_dy;
     out.dx    = 0;
