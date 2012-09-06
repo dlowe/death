@@ -21,9 +21,9 @@ world wt(world *in) {
     for (x = 0; x < 48; ++x) {
         for (y = 0; y < 48; ++y) {
             for (n = 0, a = -1; a <= 1; ++a) {
-                if ((x+a >= 0) && (x+a < 48)) {
+                if (x+a >= 0 && x+a < 48) {
                     for (b = -1; b <= 1; ++b) {
-                        if ((y+b >= 0) && (y+b < 48)) {
+                        if (y+b >= 0 && y+b < 48) {
                             if (a || b) {
                                 n += A(in, x+a, y+b);
                             }
@@ -32,7 +32,7 @@ world wt(world *in) {
                 }
             }
 
-            S(&o, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
+            S(&o, x, y, A(in, x, y) ? n == 2 || n == 3 : n == 3);
         }
     }
 
@@ -41,8 +41,9 @@ world wt(world *in) {
 
 world ws(world *in, int a, int b) {
     world o;
-    for (int x = 0; x < 48; ++x) {
-        for (int y = 0; y < 48; ++y) {
+    int x, y;
+    for (x = 0; x < 48; ++x) {
+        for (y = 0; y < 48; ++y) {
             S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1));
         }
     }
@@ -122,7 +123,7 @@ G gi(G *in) {
     return o;
 }
 
-int game_collision(G *in) {
+int gc(G *in) {
     if (in->s % 2) {
         for (int ox = in->dx + 100; ox < in->dx + 120; ++ox) {
             for (int oy = in->dy + 248; oy < in->dy + 268; ++oy) {
@@ -139,7 +140,7 @@ int game_collision(G *in) {
 }
 
 #ifndef _TESTING
-int main(void) {
+int main() {
     Display *d = XOpenDisplay(NULL);
     int s      = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
@@ -189,7 +190,7 @@ int main(void) {
         }
 
         t = gi(&t);
-        if (game_collision(&t)) {
+        if (gc(&t)) {
             t = gt(&t, 4);
         }
 
