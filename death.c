@@ -14,30 +14,29 @@ typedef struct {
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 
-world world_step(world *in) {
-    world out;
+world wt(world *in) {
+    world o;
+    int x, y, n, a, b;
 
-    for (int x = 0; x < 48; ++x) {
-        for (int y = 0; y < 48; ++y) {
-            int n = 0;
-
-            for (int dx = -1; dx <= 1; ++dx) {
-                if ((x+dx >= 0) && (x+dx < 48)) {
-                    for (int dy = -1; dy <= 1; ++dy) {
-                        if ((y+dy >= 0) && (y+dy < 48)) {
-                            if (dx || dy) {
-                                n += A(in, x+dx, y+dy);
+    for (x = 0; x < 48; ++x) {
+        for (y = 0; y < 48; ++y) {
+            for (n = 0, a = -1; a <= 1; ++a) {
+                if ((x+a >= 0) && (x+a < 48)) {
+                    for (b = -1; b <= 1; ++b) {
+                        if ((y+b >= 0) && (y+b < 48)) {
+                            if (a || b) {
+                                n += A(in, x+a, y+b);
                             }
                         }
                     }
                 }
             }
 
-            S(&out, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
+            S(&o, x, y, A(in, x, y) ? ((n == 2) || (n == 3)) : n == 3);
         }
     }
 
-    return out;
+    return o;
 }
 
 world ws(world *in, int a, int b) {
@@ -99,8 +98,8 @@ G gt(G *in, int s) {
 G gi(G *in) {
     G o = *in;
 
-    if (o.t == 0) {
-        o.w = world_step(&o.w);
+    if (! o.t) {
+        o.w = wt(&o.w);
     }
     o.t = (o.t + 1) % (int)(60 / o.l);
     o.p += o.a;

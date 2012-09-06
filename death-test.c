@@ -248,7 +248,7 @@ START_TEST (test_game_new)
 }
 END_TEST
 
-START_TEST (test_world_step_block)
+START_TEST (test_wt_block)
 {
     char *block =
         "____"
@@ -257,12 +257,12 @@ START_TEST (test_world_step_block)
         "____";
 
     world w0 = str_to_world(4, block);
-    world w1 = world_step(&w0);
+    world w1 = wt(&w0);
     fail_unless(worlds_are_equal(&w0, &w1), "block step 1");
 }
 END_TEST
 
-START_TEST (test_world_step_beehive)
+START_TEST (test_wt_beehive)
 {
     char *beehive =
         "______"
@@ -271,13 +271,13 @@ START_TEST (test_world_step_beehive)
         "__OO__"
         "______";
     world w0 = str_to_world(6, beehive);
-    world w1 = world_step(&w0);
+    world w1 = wt(&w0);
 
     fail_unless(worlds_are_equal(&w0, &w1), "beehive step 1");
 }
 END_TEST
 
-START_TEST (test_world_step_blinker)
+START_TEST (test_wt_blinker)
 {
     char *blinker0 =
         "_____"
@@ -294,8 +294,8 @@ START_TEST (test_world_step_blinker)
         "_____";
 
     world w0 = str_to_world(5, blinker0);
-    world w1_actual = world_step(&w0);
-    world w2_actual = world_step(&w1_actual);
+    world w1_actual = wt(&w0);
+    world w2_actual = wt(&w1_actual);
     world w1_expected = str_to_world(5, blinker1);
 
     fail_unless(worlds_are_equal(&w1_actual, &w1_expected), "blinker step 1");
@@ -303,7 +303,7 @@ START_TEST (test_world_step_blinker)
 }
 END_TEST
 
-START_TEST (test_world_step_glider)
+START_TEST (test_wt_glider)
 {
     char *glider0 =
         "________"
@@ -341,10 +341,10 @@ START_TEST (test_world_step_glider)
         "__OOO___";
 
     world w0 = str_to_world(8, glider0);
-    world w1_actual = world_step(&w0);
-    world w2_actual = world_step(&w1_actual);
-    world w3_actual = world_step(&w2_actual);
-    world w4_actual = world_step(&w3_actual);
+    world w1_actual = wt(&w0);
+    world w2_actual = wt(&w1_actual);
+    world w3_actual = wt(&w2_actual);
+    world w4_actual = wt(&w3_actual);
     world w1_expected = str_to_world(8, glider1);
     world w2_expected = str_to_world(8, glider2);
     world w3_expected = str_to_world(8, glider3);
@@ -423,10 +423,10 @@ int main(void) {
     tc = tcase_create("death");
     tcase_add_test(tc, test_event_handler);
     tcase_add_test(tc, test_state_playing);
-    tcase_add_test(tc, test_world_step_block);
-    tcase_add_test(tc, test_world_step_beehive);
-    tcase_add_test(tc, test_world_step_blinker);
-    tcase_add_test(tc, test_world_step_glider);
+    tcase_add_test(tc, test_wt_block);
+    tcase_add_test(tc, test_wt_beehive);
+    tcase_add_test(tc, test_wt_blinker);
+    tcase_add_test(tc, test_wt_glider);
     tcase_add_test(tc, test_ws);
     tcase_add_test(tc, test_game_new);
     tcase_add_test(tc, test_gi);
