@@ -7,12 +7,13 @@
 #include <stdio.h>
 
 typedef struct {
-    unsigned char cells[288];
+    unsigned char c[288];
 } world;
 
 #define B(x, y) ((x)*48+(y))
-#define A(w, x, y) (((w)->cells[B(x,y) / 8] & (1 << (B(x,y) % 8))) ? 1 : 0)
-#define S(w, x, y, b) (b) ? ((w)->cells[B(x,y) / 8] |= (1 << (B(x,y) % 8))) : ((w)->cells[B(x,y) / 8] &= ~(1 << (B(x,y) % 8)))
+#define C(x, y) (1 << B(x,y) % 8)
+#define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
+#define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 
 short world_cell_living_neighbors(world *in, short x, short y) {
     short n = 0;
