@@ -69,13 +69,8 @@ int e(int i, XEvent e) {
 
 typedef struct {
     world w;
-    int s;
-    int tick;
-    int start_dy;
-    int dx, dy;
-    float life_rate;
-    float speed;
-    float acceleration;
+    int s, tick, start_dy, dx, dy;
+    float life_rate, speed, acceleration;
 } game;
 
 game game_transition(game *in, int s) {
@@ -105,9 +100,8 @@ game game_transition(game *in, int s) {
     out.life_rate = s % 2 ? 2 : 0.5;
     out.speed     = s % 2;
     out.acceleration = s % 2 ? 0.002 : 0;
-    out.start_dy     = s % 2 ? 240 : 0;
+    out.dy = out.start_dy     = s % 2 ? 240 : 0;
     out.tick  = 1;
-    out.dy    = out.start_dy;
     out.dx    = 0;
     out.s     = s;
 
