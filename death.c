@@ -74,38 +74,38 @@ typedef struct {
 } game;
 
 game game_transition(game *in, int s) {
-    game out;
+    game o;
     if (in) {
-        out = *in;
+        o = *in;
         if ((in->s == s) || ((in->s % 2) && (s % 2))) {
-            out.s = s;
-            return out;
+            o.s = s;
+            return o;
         }
     }
 
     if (s == 2) {
         freopen("2.d", "r", stdin);
-        fread(&out.w, sizeof(world), 1, stdin);
+        fread(&o.w, sizeof(world), 1, stdin);
     } else if (s == 4) {
         freopen("1.d", "r", stdin);
-        fread(&out.w, sizeof(world), 1, stdin);
+        fread(&o.w, sizeof(world), 1, stdin);
     } else {
         for (int x = 0; x < 48; ++x) {
             for (int y = 0; y < 48; ++y) {
-                S(&out.w, x, y, 0);
+                S(&o.w, x, y, 0);
             }
         }
     }
 
-    out.life_rate = s % 2 ? 2 : 0.5;
-    out.speed     = s % 2;
-    out.acceleration = s % 2 ? 0.002 : 0;
-    out.dy = out.start_dy     = s % 2 ? 240 : 0;
-    out.tick  = 1;
-    out.dx    = 0;
-    out.s     = s;
+    o.life_rate = s % 2 ? 2 : 0.5;
+    o.speed     = s % 2;
+    o.acceleration = s % 2 ? 0.002 : 0;
+    o.dy = o.start_dy     = s % 2 ? 240 : 0;
+    o.tick  = 1;
+    o.dx    = 0;
+    o.s     = s;
 
-    return out;
+    return o;
 }
 
 game game_tick(game *in) {
