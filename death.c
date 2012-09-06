@@ -1,6 +1,5 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
@@ -82,7 +81,7 @@ typedef struct {
 game game_transition(game *in, int s) {
     game out;
     if (in) {
-        memcpy(&out, in, sizeof(game));
+        out = *in;
         if ((in->s == s) || ((in->s % 2) && (s % 2))) {
             out.s = s;
             return out;
@@ -125,7 +124,7 @@ game game_transition(game *in, int s) {
 game game_tick(game *in) {
     game out;
 
-    memcpy(&out, in, sizeof(game));
+    out = *in;
     if (in->tick == 0) {
         out.w = world_step(&in->w);
     }
