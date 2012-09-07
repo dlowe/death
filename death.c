@@ -1,9 +1,11 @@
-#include <X11/Xlib.h>
+#include   <X11/Xlib.h>
 #include <X11/keysym.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-#include <stdio.h>
+#include     <stdlib.h>
+#include     <unistd.h>
+#include       <time.h>
+#include      <stdio.h>
+
+int x, y;
 
 typedef struct {
     char c[288];
@@ -17,7 +19,7 @@ typedef struct {
 
 M wt(M *i) {
     M o;
-    int x, y, n, a, b;
+    int n, a, b;
 
     L {
         for (n = 0, a = -1; a <= 1; ++a) {
@@ -38,7 +40,6 @@ M wt(M *i) {
 
 M ws(M *i, int a, int b) {
     M o;
-    int x, y;
 
     L S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(i, x-a, y-b) : ((rand() % 8) == 1));
     return o;
@@ -56,7 +57,6 @@ typedef struct {
 
 G gt(G *i, int s) {
     G o;
-    int x, y;
 
     if (i) {
         o = *i;
@@ -87,7 +87,6 @@ G gt(G *i, int s) {
 
 G gi(G *i) {
     G o = *i;
-    int x, y;
 
     if (! o.t) {
         o.w = wt(&o.w);
@@ -107,8 +106,6 @@ G gi(G *i) {
 }
 
 int gc(G *i) {
-    int x, y;
-
     for (x = i->a + 100; x < i->a + 120; ++x) {
         for (y = i->b + 248; y < i->b + 268; ++y) {
             if A(&i->w, x / 20, y / 20) {
@@ -122,7 +119,7 @@ int gc(G *i) {
 #ifndef _TESTING
 int main() {
     Display *d = XOpenDisplay(0);
-    int x, y, s = DefaultScreen(d);
+    int s = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
     Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
