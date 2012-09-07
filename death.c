@@ -13,26 +13,25 @@ typedef struct {
 #define C(x, y) (1 << B(x,y) % 8)
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
+#define L(b) for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y) b
 
 M wt(M *in) {
     M o;
     int x, y, n, a, b;
 
-    for (x = 0; x < 48; ++x) {
-        for (y = 0; y < 48; ++y) {
-            for (n = 0, a = -1; a <= 1; ++a) {
-                if (x+a >= 0 && x+a < 48) {
-                    for (b = -1; b <= 1; ++b) {
-                        if (y+b >= 0 && y+b < 48) {
-                            n += (a || b) && A(in, x+a, y+b);
-                        }
+    L({
+        for (n = 0, a = -1; a <= 1; ++a) {
+            if (x+a >= 0 && x+a < 48) {
+                for (b = -1; b <= 1; ++b) {
+                    if (y+b >= 0 && y+b < 48) {
+                        n += (a || b) && A(in, x+a, y+b);
                     }
                 }
             }
-
-            S(&o, x, y, A(in, x, y) ? n == 2 || n == 3 : n == 3);
         }
-    }
+
+        S(&o, x, y, A(in, x, y) ? n == 2 || n == 3 : n == 3);
+    })
 
     return o;
 }
@@ -40,11 +39,8 @@ M wt(M *in) {
 M ws(M *in, int a, int b) {
     M o;
     int x, y;
-    for (x = 0; x < 48; ++x) {
-        for (y = 0; y < 48; ++y) {
-            S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1));
-        }
-    }
+
+    L(S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1)));
     return o;
 }
 
@@ -78,11 +74,7 @@ G gt(G *i, int s) {
         freopen("1.d", "r", stdin);
         fread(&o.w, 288, 1, stdin);
     } else {
-        for (x = 0; x < 48; ++x) {
-            for (y = 0; y < 48; ++y) {
-                S(&o.w, x, y, 0);
-            }
-        }
+        L(S(&o.w, x, y, 0));
     }
 
     o.p  = 1;
@@ -182,13 +174,11 @@ int main() {
         t = gi(&t);
 
         XFillRectangle(d, b, g, 0, 0, 640, 480);
-        for (y = 0; y < 48; ++y) {
-            for (x = 0; x < 48; ++x) {
-                if A(&t.w, x, y) {
-                    XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-t.dx, y*20-t.dy);
-                }
+        L({
+            if A(&t.w, x, y) {
+                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-t.dx, y*20-t.dy);
             }
-        }
+        })
         if (t.s % 2) {
             if (gc(&t)) {
                 t = gt(&t, 4);
