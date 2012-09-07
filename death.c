@@ -77,17 +77,6 @@ void gt(int i, int s) {
     }
 }
 
-int gc() {
-    for (x = G.a + 100; x < G.a + 120; ++x) {
-        for (y = G.b + 248; y < G.b + 268; ++y) {
-            if A(&G.w, x / 20, y / 20) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
 #ifndef _TESTING
 int main() {
     Display *d = XOpenDisplay(0);
@@ -149,8 +138,12 @@ int main() {
             }
         }
         if (G.s % 2) {
-            if (gc()) {
-                gt(G.s, 4);
+            for (x = G.a + 100; x < G.a + 120; ++x) {
+                for (y = G.b + 248; y < G.b + 268; ++y) {
+                    if A(&G.w, x / 20, y / 20) {
+                        gt(G.s, 4);
+                    }
+                }
             }
             XCopyArea(d, p, b, g, 0, 20*(G.t / 8 + 1), 20, 20, 100, 248);
         }
