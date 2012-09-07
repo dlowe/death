@@ -50,65 +50,37 @@ int e(int i, XEvent e) {
     return e.type == KeyPress ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (i == 4 ? i : 3) : (k == XK_Down ? (i == 4 ? i : 5) : (i == 2 ? 1 : (i == 4 ? 2 : i))))) : (e.type == KeyRelease ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_Up ? (i == 3 ? 1 : i) : (i == 5 ? 1 : i)) : i);
 }
 
-typedef struct {
+struct {
     M w;
     int s, p, t, a, b;
 } G;
 
-G gt(G *i, int s) {
-    G o;
+#define R(x) freopen(x, "r", stdin); fread(&G.w, 288, 1, stdin);
 
-    if (i) {
-        o = *i;
-        if (i->s == s || (i->s % 2 && s % 2)) {
-            o.s = s;
-            return o;
-        }
-    }
-
-    if (s == 2) {
-        freopen("2.d", "r", stdin);
-        fread(&o.w, 288, 1, stdin);
-    } else if (s == 4) {
-        freopen("1.d", "r", stdin);
-        fread(&o.w, 288, 1, stdin);
+void gt(int i, int s) {
+    if (i == s || (i % 2 && s % 2)) {
+        G.s = s;
     } else {
-        L S(&o.w, x, y, 0);
+        if (s == 2) {
+            R("2.d")
+        } else if (s == 4) {
+            R("1.d")
+        } else {
+            L S(&G.w, x, y, 0);
+        }
+
+        G.p = 1000;
+        G.b = 240;
+        G.t = 1;
+        G.a = 0;
+        G.s = s;
     }
-
-    o.p = 1000;
-    o.b = 240;
-    o.t = 1;
-    o.a = 0;
-    o.s = s;
-
-    return o;
 }
 
-G gi(G *i) {
-    G o = *i;
-
-    if (! o.t) {
-        o.w = wt(&o.w);
-    }
-    o.t = ++o.t % (o.s % 2 ? 30 : 120);
-    o.p += 2;
-    o.a += o.s % 2 ? o.p/1000 : 0;
-    o.b += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
-
-    x = o.a >= 160 ? -8 : 0;
-    y = o.b >= 400 ? -8 : (o.b <= 80 ? 8 : 0);
-    o.a = x ? 0 : o.a;
-    o.b = y ? 240 : o.b;
-    o.w = ws(&o.w, x, y);
-
-    return o;
-}
-
-int gc(G *i) {
-    for (x = i->a + 100; x < i->a + 120; ++x) {
-        for (y = i->b + 248; y < i->b + 268; ++y) {
-            if A(&i->w, x / 20, y / 20) {
+int gc() {
+    for (x = G.a + 100; x < G.a + 120; ++x) {
+        for (y = G.b + 248; y < G.b + 268; ++y) {
+            if A(&G.w, x / 20, y / 20) {
                 return 1;
             }
         }
@@ -121,21 +93,19 @@ int main() {
     Display *d = XOpenDisplay(0);
     int s = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
+    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 100, DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
-    G t;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
     XMapWindow(d, w);
     W.foreground = WhitePixel(d, s);
     B.foreground = BlackPixel(d, s);
 
-    freopen("0.d", "r", stdin);
-    fread(&t.w, 288, 1, stdin);
+    R("0.d")
 
     L {
-        XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
+        XChangeGC(d, g, GCForeground, A(&G.w, x, y) ? &B : &W);
         if (y < 20) {
             if (x < 20) {
                 XDrawPoint(d, p, g, x, y);
@@ -146,31 +116,43 @@ int main() {
     }
 
     srand(time(0));
-    t = gt(0, 2);
+    gt(0, 2);
 
-    while (t.s) {
+    while (G.s) {
         usleep(16666);
 
         while (XPending(d)) {
             XEvent v;
             XNextEvent(d, &v);
     
-            t = gt(&t, e(t.s, v));
+            gt(G.s, e(G.s, v));
         }
 
-        t = gi(&t);
+        if (! G.t) {
+            G.w = wt(&G.w);
+        }
+        G.t = ++G.t % (G.s % 2 ? 30 : 120);
+        G.p += 2;
+        G.a += G.s % 2 ? G.p/1000 : 0;
+        G.b += G.s == 3 ? -2 : (G.s == 5 ? 2 : 0);
+
+        x = G.a >= 160 ? -8 : 0;
+        y = G.b >= 400 ? -8 : (G.b <= 80 ? 8 : 0);
+        G.a = x ? 0 : G.a;
+        G.b = y ? 240 : G.b;
+        G.w = ws(&G.w, x, y);
 
         XFillRectangle(d, b, g, 0, 0, 640, 480);
         L {
-            if A(&t.w, x, y) {
-                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-t.a, y*20-t.b);
+            if A(&G.w, x, y) {
+                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-G.a, y*20-G.b);
             }
         }
-        if (t.s % 2) {
-            if (gc(&t)) {
-                t = gt(&t, 4);
+        if (G.s % 2) {
+            if (gc()) {
+                gt(G.s, 4);
             }
-            XCopyArea(d, p, b, g, 0, 20*(t.t / 8 + 1), 20, 20, 100, 248);
+            XCopyArea(d, p, b, g, 0, 20*(G.t / 8 + 1), 20, 20, 100, 248);
         }
 
         XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);

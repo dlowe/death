@@ -194,6 +194,7 @@ short Ms_are_equal(M *w1, M *w2) {
     return 1;
 }
 
+/*
 START_TEST (test_game_new)
 {
     G g = gt(NULL, splash);
@@ -271,6 +272,7 @@ START_TEST (test_game_new)
     fail_unless(Ms_are_equal(&g.w, &w), "dead rendered");
 }
 END_TEST
+*/
 
 START_TEST (test_wt_block)
 {
@@ -411,7 +413,7 @@ START_TEST (test_ws)
 }
 END_TEST
 
-START_TEST (test_gi)
+/* START_TEST (test_gi)
 {
     int i;
     G g = gt(NULL, playing_nil);
@@ -423,10 +425,8 @@ START_TEST (test_gi)
     for (i = 0; i < 30; ++i) {
         G gnext = gi(&g);
         if (g.t == 0) {
-            /* step, so Ms should no longer be equal */
             fail_unless(! Ms_are_equal(&g.w, &gnext.w), "unequal after step");
         } else {
-            /* no step, so Ms should be equal */
             fail_unless(Ms_are_equal(&g.w, &gnext.w), "equal after !step");
         }
         fail_unless(gnext.p == g.p + 2, "speed increased");
@@ -436,7 +436,7 @@ START_TEST (test_gi)
         g = gnext;
     }
 }
-END_TEST
+END_TEST */
 
 int main(void) {
     TCase *tc;
@@ -452,8 +452,6 @@ int main(void) {
     tcase_add_test(tc, test_wt_blinker);
     tcase_add_test(tc, test_wt_glider);
     tcase_add_test(tc, test_ws);
-    tcase_add_test(tc, test_game_new);
-    tcase_add_test(tc, test_gi);
 
     suite = suite_create("death");
     suite_add_tcase(suite, tc);
