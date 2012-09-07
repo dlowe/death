@@ -18,7 +18,7 @@
 #define WINDOW_WIDTH        640
 #define WINDOW_HEIGHT       480
 
-void print_world(world *w, short width, short height) {
+void print_M(M *w, short width, short height) {
     int x, y;
     for (y = 0; y < height; ++y) {
         for (x = 0; x < width; ++x) {
@@ -28,9 +28,9 @@ void print_world(world *w, short width, short height) {
     }
 }
 
-world str_to_world(short width, char *in) {
+M str_to_M(short width, char *in) {
     int x, y;
-    world out;
+    M out;
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -167,7 +167,7 @@ START_TEST (test_state_playing)
 }
 END_TEST
 
-short basic_world_assertions(world *in) {
+short basic_M_assertions(M *in) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -182,7 +182,7 @@ short basic_world_assertions(world *in) {
     return 1;
 }
 
-short worlds_are_equal(world *w1, world *w2) {
+short Ms_are_equal(M *w1, M *w2) {
     int x, y;
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -197,7 +197,7 @@ short worlds_are_equal(world *w1, world *w2) {
 START_TEST (test_game_new)
 {
     G g = gt(NULL, splash);
-    fail_unless(basic_world_assertions(&g.w), "splash basics");
+    fail_unless(basic_M_assertions(&g.w), "splash basics");
 
     char *splash_s =
             "______________________________"
@@ -218,14 +218,14 @@ START_TEST (test_game_new)
             "_O_O_OOO_OOO__O__OOO__________"
             "_O_O_O___O_O__O__O_O__________"
             "_OO__OOO_O_O__O__O_O__________";
-    world w = str_to_world(30, splash_s);
+    M w = str_to_M(30, splash_s);
 
     fail_unless(g.dx == 0, "dx is 0");
     fail_unless(g.dy == 0, "dy is 0");
-    fail_unless(worlds_are_equal(&g.w, &w), "splash rendered");
+    fail_unless(Ms_are_equal(&g.w, &w), "splash rendered");
 
     g = gt(NULL, dead);
-    fail_unless(basic_world_assertions(&g.w), "dead basics");
+    fail_unless(basic_M_assertions(&g.w), "dead basics");
 
     char *dead_s =
             "______________________"
@@ -243,8 +243,8 @@ START_TEST (test_game_new)
             "_______O_O_O_O_OOO_OOO"
             "_______O_O_O_O_O___OO_"
             "________O___O__OOO_O_O";
-    w = str_to_world(22, dead_s);
-    fail_unless(worlds_are_equal(&g.w, &w), "dead rendered");
+    w = str_to_M(22, dead_s);
+    fail_unless(Ms_are_equal(&g.w, &w), "dead rendered");
 }
 END_TEST
 
@@ -256,9 +256,9 @@ START_TEST (test_wt_block)
         "_OO_"
         "____";
 
-    world w0 = str_to_world(4, block);
-    world w1 = wt(&w0);
-    fail_unless(worlds_are_equal(&w0, &w1), "block step 1");
+    M w0 = str_to_M(4, block);
+    M w1 = wt(&w0);
+    fail_unless(Ms_are_equal(&w0, &w1), "block step 1");
 }
 END_TEST
 
@@ -270,10 +270,10 @@ START_TEST (test_wt_beehive)
         "_O__O_"
         "__OO__"
         "______";
-    world w0 = str_to_world(6, beehive);
-    world w1 = wt(&w0);
+    M w0 = str_to_M(6, beehive);
+    M w1 = wt(&w0);
 
-    fail_unless(worlds_are_equal(&w0, &w1), "beehive step 1");
+    fail_unless(Ms_are_equal(&w0, &w1), "beehive step 1");
 }
 END_TEST
 
@@ -293,13 +293,13 @@ START_TEST (test_wt_blinker)
         "_____"
         "_____";
 
-    world w0 = str_to_world(5, blinker0);
-    world w1_actual = wt(&w0);
-    world w2_actual = wt(&w1_actual);
-    world w1_expected = str_to_world(5, blinker1);
+    M w0 = str_to_M(5, blinker0);
+    M w1_actual = wt(&w0);
+    M w2_actual = wt(&w1_actual);
+    M w1_expected = str_to_M(5, blinker1);
 
-    fail_unless(worlds_are_equal(&w1_actual, &w1_expected), "blinker step 1");
-    fail_unless(worlds_are_equal(&w2_actual, &w0), "blinker step 2");
+    fail_unless(Ms_are_equal(&w1_actual, &w1_expected), "blinker step 1");
+    fail_unless(Ms_are_equal(&w2_actual, &w0), "blinker step 2");
 }
 END_TEST
 
@@ -340,20 +340,20 @@ START_TEST (test_wt_glider)
         "____O___"
         "__OOO___";
 
-    world w0 = str_to_world(8, glider0);
-    world w1_actual = wt(&w0);
-    world w2_actual = wt(&w1_actual);
-    world w3_actual = wt(&w2_actual);
-    world w4_actual = wt(&w3_actual);
-    world w1_expected = str_to_world(8, glider1);
-    world w2_expected = str_to_world(8, glider2);
-    world w3_expected = str_to_world(8, glider3);
-    world w4_expected = str_to_world(8, glider4);
+    M w0 = str_to_M(8, glider0);
+    M w1_actual = wt(&w0);
+    M w2_actual = wt(&w1_actual);
+    M w3_actual = wt(&w2_actual);
+    M w4_actual = wt(&w3_actual);
+    M w1_expected = str_to_M(8, glider1);
+    M w2_expected = str_to_M(8, glider2);
+    M w3_expected = str_to_M(8, glider3);
+    M w4_expected = str_to_M(8, glider4);
 
-    fail_unless(worlds_are_equal(&w1_actual, &w1_expected), "glider step 1");
-    fail_unless(worlds_are_equal(&w2_actual, &w2_expected), "glider step 2");
-    fail_unless(worlds_are_equal(&w3_actual, &w3_expected), "glider step 3");
-    fail_unless(worlds_are_equal(&w4_actual, &w4_expected), "glider step 4");
+    fail_unless(Ms_are_equal(&w1_actual, &w1_expected), "glider step 1");
+    fail_unless(Ms_are_equal(&w2_actual, &w2_expected), "glider step 2");
+    fail_unless(Ms_are_equal(&w3_actual, &w3_expected), "glider step 3");
+    fail_unless(Ms_are_equal(&w4_actual, &w4_expected), "glider step 4");
 }
 END_TEST
 
@@ -369,11 +369,11 @@ START_TEST (test_ws)
         "_______"
         "_______";
 
-    world w0 = str_to_world(7, t);
+    M w0 = str_to_M(7, t);
     for (short dx = -2; dx <= 2; ++dx) {
         for (short dy = -2; dy <= 2; ++dy) {
-            world w1 = ws(&w0, dx, dy);
-            fail_unless(basic_world_assertions(&w1), "slide basics");
+            M w1 = ws(&w0, dx, dy);
+            fail_unless(basic_M_assertions(&w1), "slide basics");
             fail_unless(A(&w1, ox+dx, oy+dy), "slide correct cell alive");
             for (short tx = -1; tx <= 1; ++tx) {
                 for (short ty = -1; ty <= 1; ++ty) {
@@ -399,11 +399,11 @@ START_TEST (test_gi)
     for (i = 0; i < 30; ++i) {
         G gnext = gi(&g);
         if (g.t == 0) {
-            /* step, so worlds should no longer be equal */
-            fail_unless(! worlds_are_equal(&g.w, &gnext.w), "unequal after step");
+            /* step, so Ms should no longer be equal */
+            fail_unless(! Ms_are_equal(&g.w, &gnext.w), "unequal after step");
         } else {
-            /* no step, so worlds should be equal */
-            fail_unless(worlds_are_equal(&g.w, &gnext.w), "equal after !step");
+            /* no step, so Ms should be equal */
+            fail_unless(Ms_are_equal(&g.w, &gnext.w), "equal after !step");
         }
         fail_unless((gnext.p - (g.p + SPEED_ZOOM)) < 0.00001, "speed increased");
         fail_unless(gnext.dy == g.dy, "dy constant");

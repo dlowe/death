@@ -7,15 +7,15 @@
 
 typedef struct {
     char c[288];
-} world;
+} M;
 
 #define B(x, y) ((x)*48+(y))
 #define C(x, y) (1 << B(x,y) % 8)
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 
-world wt(world *in) {
-    world o;
+M wt(M *in) {
+    M o;
     int x, y, n, a, b;
 
     for (x = 0; x < 48; ++x) {
@@ -37,8 +37,8 @@ world wt(world *in) {
     return o;
 }
 
-world ws(world *in, int a, int b) {
-    world o;
+M ws(M *in, int a, int b) {
+    M o;
     int x, y;
     for (x = 0; x < 48; ++x) {
         for (y = 0; y < 48; ++y) {
@@ -54,7 +54,7 @@ int e(int i, XEvent e) {
 }
 
 typedef struct {
-    world w;
+    M w;
     int s, t, y, dx, dy;
     float l, p, a;
 } G;

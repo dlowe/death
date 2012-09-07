@@ -5,9 +5,9 @@
 
 #define DIM 48
 
-world str_to_world(short width, char *in) {
+M str_to_M(short width, char *in) {
     int x, y;
-    world out;
+    M out;
 
     for (x = 0; x < DIM; ++x) {
         for (y = 0; y < DIM; ++y) {
@@ -47,9 +47,9 @@ int main(void) {
             "_O_O_O___O_O__O__O_O__________"
             "_OO__OOO_O_O__O__O_O__________";
 
-        world splash_world = str_to_world(30, splash_s);
+        M splash_M = str_to_M(30, splash_s);
         FILE *f = fopen("2.d", "w");
-        fwrite(&splash_world, sizeof(world), 1, f);
+        fwrite(&splash_M, sizeof(M), 1, f);
         fclose(f);
     }
 
@@ -70,9 +70,9 @@ int main(void) {
             "_______O_O_O_O_OOO_OOO"
             "_______O_O_O_O_O___OO_"
             "________O___O__OOO_O_O";
-        world dead_world = str_to_world(22, dead_s);
+        M dead_M = str_to_M(22, dead_s);
         FILE *f = fopen("1.d", "w");
-        fwrite(&dead_world, sizeof(world), 1, f);
+        fwrite(&dead_M, sizeof(M), 1, f);
         fclose(f);
     }
 
@@ -99,9 +99,9 @@ int main(void) {
             "OOOOOOOOOOOOOOOOOOOO" "__OO_"
             "_OOOOOOOOOOOOOOOOOO_" "_____";
 
-        world cell_world = str_to_world(25, cell_s);
+        M cell_M = str_to_M(25, cell_s);
         FILE *f = fopen("0.d", "w");
-        fwrite(&cell_world, sizeof(world), 1, f);
+        fwrite(&cell_M, sizeof(M), 1, f);
         fclose(f);
     }
 }
