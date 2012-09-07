@@ -13,13 +13,13 @@ typedef struct {
 #define C(x, y) (1 << B(x,y) % 8)
 #define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
-#define L(b) for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y) b
+#define L for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y)
 
 M wt(M *in) {
     M o;
     int x, y, n, a, b;
 
-    L({
+    L {
         for (n = 0, a = -1; a <= 1; ++a) {
             if (x+a >= 0 && x+a < 48) {
                 for (b = -1; b <= 1; ++b) {
@@ -31,7 +31,7 @@ M wt(M *in) {
         }
 
         S(&o, x, y, A(in, x, y) ? n == 2 || n == 3 : n == 3);
-    })
+    }
 
     return o;
 }
@@ -40,7 +40,7 @@ M ws(M *in, int a, int b) {
     M o;
     int x, y;
 
-    L(S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1)));
+    L S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1));
     return o;
 }
 
@@ -51,8 +51,7 @@ int e(int i, XEvent e) {
 
 typedef struct {
     M w;
-    int s, t, y, dx, dy;
-    float p;
+    int s, p, t, y, a, b;
 } G;
 
 G gt(G *i, int s) {
@@ -74,14 +73,14 @@ G gt(G *i, int s) {
         freopen("1.d", "r", stdin);
         fread(&o.w, 288, 1, stdin);
     } else {
-        L(S(&o.w, x, y, 0));
+        L S(&o.w, x, y, 0);
     }
 
-    o.p  = 1;
-    o.dy = o.y = s % 2 ? 240 : 0;
-    o.t  = 1;
-    o.dx = 0;
-    o.s  = s;
+    o.p = 1000;
+    o.b = o.y = s % 2 ? 240 : 0;
+    o.t = 1;
+    o.a = 0;
+    o.s = s;
 
     return o;
 }
@@ -93,20 +92,20 @@ G gi(G *i) {
         o.w = wt(&o.w);
     }
     o.t = ++o.t % (o.s % 2 ? 30 : 120);
-    o.p += 0.002;
-    o.dx += o.s % 2 ? o.p : 0;
-    o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
+    o.p  += 2;
+    o.a += o.s % 2 ? o.p/1000 : 0;
+    o.b += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
 
-    if (o.dx >= 160) {
-        o.dx = 0;
+    if (o.a >= 160) {
+        o.a = 0;
         o.w = ws(&o.w, -8, 0);
     }
-    if (o.dy - o.y >= 160) {
-        o.dy = o.y;
+    if (o.b - o.y >= 160) {
+        o.b = o.y;
         o.w  = ws(&o.w, 0, -8);
     }
-    if (o.dy - o.y <= -160) {
-        o.dy = o.y;
+    if (o.b - o.y <= -160) {
+        o.b = o.y;
         o.w  = ws(&o.w, 0, 8);
     }
 
@@ -116,8 +115,8 @@ G gi(G *i) {
 int gc(G *i) {
     int x, y;
 
-    for (x = i->dx + 100; x < i->dx + 120; ++x) {
-        for (y = i->dy + 248; y < i->dy + 268; ++y) {
+    for (x = i->a + 100; x < i->a + 120; ++x) {
+        for (y = i->b + 248; y < i->b + 268; ++y) {
             if A(&i->w, x / 20, y / 20) {
                 return 1;
             }
@@ -144,17 +143,14 @@ int main() {
     freopen("0.d", "r", stdin);
     fread(&t.w, 288, 1, stdin);
 
-    for (x = 0; x < 20; ++x) {
-        for (y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
-            XDrawPoint(d, p, g, x, y);
-        }
-    }
-
-    for (x = 20; x < 25; ++x) {
-        for (y = 0; y < 20; ++y) {
-            XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
-            XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
+    L {
+        XChangeGC(d, g, GCForeground, A(&t.w, x, y) ? &B : &W);
+        if (y < 20) {
+            if (x < 20) {
+                XDrawPoint(d, p, g, x, y);
+            } else if (x < 25) {
+                XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
+            }
         }
     }
 
@@ -174,11 +170,11 @@ int main() {
         t = gi(&t);
 
         XFillRectangle(d, b, g, 0, 0, 640, 480);
-        L({
+        L {
             if A(&t.w, x, y) {
-                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-t.dx, y*20-t.dy);
+                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-t.a, y*20-t.b);
             }
-        })
+        }
         if (t.s % 2) {
             if (gc(&t)) {
                 t = gt(&t, 4);

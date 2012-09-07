@@ -220,8 +220,8 @@ START_TEST (test_game_new)
             "_OO__OOO_O_O__O__O_O__________";
     M w = str_to_M(30, splash_s);
 
-    fail_unless(g.dx == 0, "dx is 0");
-    fail_unless(g.dy == 0, "dy is 0");
+    fail_unless(g.a == 0, "dx is 0");
+    fail_unless(g.b == 0, "dy is 0");
     fail_unless(Ms_are_equal(&g.w, &w), "splash rendered");
 
     g = gt(NULL, dead);
@@ -405,9 +405,9 @@ START_TEST (test_gi)
             /* no step, so Ms should be equal */
             fail_unless(Ms_are_equal(&g.w, &gnext.w), "equal after !step");
         }
-        fail_unless((gnext.p - (g.p + SPEED_ZOOM)) < 0.00001, "speed increased");
-        fail_unless(gnext.dy == g.dy, "dy constant");
-        fail_unless(gnext.dx == (int)(g.dx + gnext.p), "dx increased");
+        fail_unless(gnext.p == g.p + 2, "speed increased");
+        fail_unless(gnext.b == g.b, "dy constant");
+        fail_unless(gnext.a == (int)(g.a + gnext.p/1000), "dx increased");
         fail_unless(gnext.s == g.s, "state constant");
         g = gnext;
     }
