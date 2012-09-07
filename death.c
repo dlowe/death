@@ -51,7 +51,7 @@ int e(int i, XEvent e) {
 
 typedef struct {
     M w;
-    int s, p, t, y, a, b;
+    int s, p, t, a, b;
 } G;
 
 G gt(G *i, int s) {
@@ -77,7 +77,7 @@ G gt(G *i, int s) {
     }
 
     o.p = 1000;
-    o.b = o.y = s % 2 ? 240 : 0;
+    o.b = 240;
     o.t = 1;
     o.a = 0;
     o.s = s;
@@ -100,12 +100,12 @@ G gi(G *i) {
         o.a = 0;
         o.w = ws(&o.w, -8, 0);
     }
-    if (o.b - o.y >= 160) {
-        o.b = o.y;
+    if (o.b >= 400) {
+        o.b = 240;
         o.w  = ws(&o.w, 0, -8);
     }
-    if (o.b - o.y <= -160) {
-        o.b = o.y;
+    if (o.b <= 80) {
+        o.b = 240;
         o.w  = ws(&o.w, 0, 8);
     }
 
