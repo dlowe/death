@@ -24,9 +24,7 @@ world wt(world *in) {
                 if (x+a >= 0 && x+a < 48) {
                     for (b = -1; b <= 1; ++b) {
                         if (y+b >= 0 && y+b < 48) {
-                            if (a || b) {
-                                n += A(in, x+a, y+b);
-                            }
+                            n += (a || b) && A(in, x+a, y+b);
                         }
                     }
                 }
@@ -63,6 +61,8 @@ typedef struct {
 
 G gt(G *in, int s) {
     G o;
+    int x, y;
+
     if (in) {
         o = *in;
         if ((in->s == s) || ((in->s % 2) && (s % 2))) {
@@ -78,8 +78,8 @@ G gt(G *in, int s) {
         freopen("1.d", "r", stdin);
         fread(&o.w, 288, 1, stdin);
     } else {
-        for (int x = 0; x < 48; ++x) {
-            for (int y = 0; y < 48; ++y) {
+        for (x = 0; x < 48; ++x) {
+            for (y = 0; y < 48; ++y) {
                 S(&o.w, x, y, 0);
             }
         }
@@ -124,13 +124,14 @@ G gi(G *in) {
 }
 
 int gc(G *in) {
+    int x, y, ox, oy;
+
     if (in->s % 2) {
-        for (int ox = in->dx + 100; ox < in->dx + 120; ++ox) {
-            for (int oy = in->dy + 248; oy < in->dy + 268; ++oy) {
-                int x, y;
+        for (ox = in->dx + 100; ox < in->dx + 120; ++ox) {
+            for (oy = in->dy + 248; oy < in->dy + 268; ++oy) {
                 x = ox / 20;
                 y = oy / 20;
-                if (A(&in->w, x, y)) {
+                if A(&in->w, x, y) {
                     return 1;
                 }
             }
@@ -147,7 +148,7 @@ int main() {
     Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
-    int P = 0, Q = 0, x, y;
+    int P = 0, Q = 0, x, y, ox, oy;
     G t;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
@@ -197,10 +198,10 @@ int main() {
         XChangeGC(d, g, GCForeground, &W);
         XFillRectangle(d, b, g, 0, 0, 640, 480);
         for (y = 0; y < 48; ++y) {
-            int oy = y*20-t.dy;
+            oy = y*20-t.dy;
             for (x = 0; x < 48; ++x) {
-                int ox = x*20-t.dx;
-                if (A(&t.w, x, y)) {
+                ox = x*20-t.dx;
+                if A(&t.w, x, y) {
                     XCopyArea(d, p, b, g, 0, 0, 20, 20, ox, oy);
                 }
             }
@@ -213,10 +214,7 @@ int main() {
         }
 
         XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);
-        XFlush(d);
     }
-
-    XCloseDisplay(d);
     return 0;
 }
 #endif
