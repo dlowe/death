@@ -102,7 +102,7 @@ G gi(G *in) {
     if (! o.t) {
         o.w = wt(&o.w);
     }
-    o.t = (o.t + 1) % (int)(60 / o.l);
+    o.t = ++o.t % (int)(60 / o.l);
     o.p += o.a;
     o.dx += o.p;
     o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
@@ -207,9 +207,8 @@ int main() {
         }
         if (t.s % 2) {
             XCopyArea(d, p, b, g, 0, 20*(Q + 1), 20, 20, 100, 248);
-            P = (P + 1) % 12;
-            if (! P) {
-                Q = (Q + 1) % 4;
+            if (! (P = ++P % 12)) {
+                Q = ++Q % 4;
             }
         }
 
