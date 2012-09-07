@@ -15,7 +15,7 @@ typedef struct {
 #define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
 #define L for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y)
 
-M wt(M *in) {
+M wt(M *i) {
     M o;
     int x, y, n, a, b;
 
@@ -24,23 +24,23 @@ M wt(M *in) {
             if (x+a >= 0 && x+a < 48) {
                 for (b = -1; b <= 1; ++b) {
                     if (y+b >= 0 && y+b < 48) {
-                        n += (a || b) && A(in, x+a, y+b);
+                        n += (a || b) && A(i, x+a, y+b);
                     }
                 }
             }
         }
 
-        S(&o, x, y, A(in, x, y) ? n == 2 || n == 3 : n == 3);
+        S(&o, x, y, A(i, x, y) ? n == 2 || n == 3 : n == 3);
     }
 
     return o;
 }
 
-M ws(M *in, int a, int b) {
+M ws(M *i, int a, int b) {
     M o;
     int x, y;
 
-    L S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(in, x-a, y-b) : ((rand() % 8) == 1));
+    L S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(i, x-a, y-b) : ((rand() % 8) == 1));
     return o;
 }
 
@@ -60,7 +60,7 @@ G gt(G *i, int s) {
 
     if (i) {
         o = *i;
-        if ((i->s == s) || ((i->s % 2) && (s % 2))) {
+        if (i->s == s || (i->s % 2 && s % 2)) {
             o.s = s;
             return o;
         }
@@ -87,6 +87,7 @@ G gt(G *i, int s) {
 
 G gi(G *i) {
     G o = *i;
+    int x, y;
 
     if (! o.t) {
         o.w = wt(&o.w);
@@ -96,18 +97,11 @@ G gi(G *i) {
     o.a += o.s % 2 ? o.p/1000 : 0;
     o.b += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
 
-    if (o.a >= 160) {
-        o.a = 0;
-        o.w = ws(&o.w, -8, 0);
-    }
-    if (o.b >= 400) {
-        o.b = 240;
-        o.w  = ws(&o.w, 0, -8);
-    }
-    if (o.b <= 80) {
-        o.b = 240;
-        o.w  = ws(&o.w, 0, 8);
-    }
+    x = o.a >= 160 ? -8 : 0;
+    y = o.b >= 400 ? -8 : (o.b <= 80 ? 8 : 0);
+    o.a = x ? 0 : o.a;
+    o.b = y ? 240 : o.b;
+    o.w = ws(&o.w, x, y);
 
     return o;
 }
@@ -184,6 +178,5 @@ int main() {
 
         XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);
     }
-    return 0;
 }
 #endif
