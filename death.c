@@ -56,16 +56,16 @@ int e(int i, XEvent e) {
 typedef struct {
     M w;
     int s, t, y, dx, dy;
-    float l, p, a;
+    float p;
 } G;
 
-G gt(G *in, int s) {
+G gt(G *i, int s) {
     G o;
     int x, y;
 
-    if (in) {
-        o = *in;
-        if ((in->s == s) || ((in->s % 2) && (s % 2))) {
+    if (i) {
+        o = *i;
+        if ((i->s == s) || ((i->s % 2) && (s % 2))) {
             o.s = s;
             return o;
         }
@@ -85,26 +85,24 @@ G gt(G *in, int s) {
         }
     }
 
-    o.l = s % 2 ? 2 : 0.5;
-    o.p     = s % 2;
-    o.a = s % 2 ? 0.002 : 0;
-    o.dy = o.y     = s % 2 ? 240 : 0;
+    o.p  = 1;
+    o.dy = o.y = s % 2 ? 240 : 0;
     o.t  = 1;
-    o.dx    = 0;
-    o.s     = s;
+    o.dx = 0;
+    o.s  = s;
 
     return o;
 }
 
-G gi(G *in) {
-    G o = *in;
+G gi(G *i) {
+    G o = *i;
 
     if (! o.t) {
         o.w = wt(&o.w);
     }
-    o.t = ++o.t % (int)(60 / o.l);
-    o.p += o.a;
-    o.dx += o.p;
+    o.t = ++o.t % (o.s % 2 ? 30 : 120);
+    o.p += 0.002;
+    o.dx += o.s % 2 ? o.p : 0;
     o.dy += o.s == 3 ? -2 : (o.s == 5 ? 2 : 0);
 
     if (o.dx >= 160) {
@@ -123,15 +121,13 @@ G gi(G *in) {
     return o;
 }
 
-int gc(G *in) {
+int gc(G *i) {
     int x, y;
 
-    if (in->s % 2) {
-        for (x = in->dx + 100; x < in->dx + 120; ++x) {
-            for (y = in->dy + 248; y < in->dy + 268; ++y) {
-                if A(&in->w, x / 20, y / 20) {
-                    return 1;
-                }
+    for (x = i->dx + 100; x < i->dx + 120; ++x) {
+        for (y = i->dy + 248; y < i->dy + 268; ++y) {
+            if A(&i->w, x / 20, y / 20) {
+                return 1;
             }
         }
     }
@@ -141,12 +137,11 @@ int gc(G *in) {
 #ifndef _TESTING
 int main() {
     Display *d = XOpenDisplay(0);
-    int s      = DefaultScreen(d);
+    int x, y, s = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
     Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 20 * (4+1), DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
-    int P = 0, Q = 0, x, y;
     G t;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
@@ -174,7 +169,7 @@ int main() {
     srand(time(0));
     t = gt(0, 2);
 
-    for (; ; ) {
+    while (t.s) {
         usleep(16666);
 
         while (XPending(d)) {
@@ -184,14 +179,7 @@ int main() {
             t = gt(&t, e(t.s, v));
         }
 
-        if (! t.s) {
-            break;
-        }
-
         t = gi(&t);
-        if (gc(&t)) {
-            t = gt(&t, 4);
-        }
 
         XFillRectangle(d, b, g, 0, 0, 640, 480);
         for (y = 0; y < 48; ++y) {
@@ -202,10 +190,10 @@ int main() {
             }
         }
         if (t.s % 2) {
-            XCopyArea(d, p, b, g, 0, 20*(Q + 1), 20, 20, 100, 248);
-            if (! (P = ++P % 12)) {
-                Q = ++Q % 4;
+            if (gc(&t)) {
+                t = gt(&t, 4);
             }
+            XCopyArea(d, p, b, g, 0, 20*(t.t / 8 + 1), 20, 20, 100, 248);
         }
 
         XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);
