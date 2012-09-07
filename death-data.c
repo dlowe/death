@@ -1,16 +1,21 @@
 #include <stdio.h>
 
-#define _TESTING
-#include "death.c"
+#define DIworld 48
 
-#define DIM 48
+typedef struct {
+    char c[288];
+} world;
 
-M str_to_M(short width, char *in) {
+#define B(x, y) ((x)*48+(y))
+#define C(x, y) (1 << B(x,y) % 8)
+#define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
+
+world str_to_world(short width, char *in) {
     int x, y;
-    M out;
+    world out;
 
-    for (x = 0; x < DIM; ++x) {
-        for (y = 0; y < DIM; ++y) {
+    for (x = 0; x < DIworld; ++x) {
+        for (y = 0; y < DIworld; ++y) {
             S(&out, x, y, 0);
         }
     }
@@ -59,9 +64,9 @@ int main(void) {
             "_O_O_O___O_O__O__O_O__________"
             "_OO__OOO_O_O__O__O_O__________";
 
-        M splash_M = str_to_M(30, splash_s);
+        world splash_world = str_to_world(30, splash_s);
         FILE *f = fopen("2.d", "w");
-        fwrite(&splash_M, sizeof(M), 1, f);
+        fwrite(&splash_world, sizeof(world), 1, f);
         fclose(f);
     }
 
@@ -94,9 +99,9 @@ int main(void) {
             "_______O_O_O_O_OOO_OOO"
             "_______O_O_O_O_O___OO_"
             "________O___O__OOO_O_O";
-        M dead_M = str_to_M(22, dead_s);
+        world dead_world = str_to_world(22, dead_s);
         FILE *f = fopen("1.d", "w");
-        fwrite(&dead_M, sizeof(M), 1, f);
+        fwrite(&dead_world, sizeof(world), 1, f);
         fclose(f);
     }
 
@@ -123,9 +128,9 @@ int main(void) {
             "OOOOOOOOOOOOOOOOOOOO" "__OO_"
             "_OOOOOOOOOOOOOOOOOO_" "_____";
 
-        M cell_M = str_to_M(25, cell_s);
+        world cell_world = str_to_world(25, cell_s);
         FILE *f = fopen("0.d", "w");
-        fwrite(&cell_M, sizeof(M), 1, f);
+        fwrite(&cell_world, sizeof(world), 1, f);
         fclose(f);
     }
 }

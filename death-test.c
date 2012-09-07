@@ -57,6 +57,7 @@ M str_to_M(short width, char *in) {
 
 #define state_playing(s) ((s) % 2)
 
+#if 0
 START_TEST (test_event_handler)
 {
     int type;
@@ -64,7 +65,6 @@ START_TEST (test_event_handler)
     XEvent event;
     Display *display = XOpenDisplay(NULL);
 
-    /* ignore all events other than KeyPress and KeyRelease */
     for (type = 0; type <= LASTEvent; ++type) {
         if ((type == KeyPress) || (type == KeyRelease)) {
             continue;
@@ -155,6 +155,7 @@ START_TEST (test_event_handler)
     fail_unless(e(playing_down, event) == playing_nil, "down+!down => nil");
 }
 END_TEST
+#endif
 
 START_TEST (test_state_playing)
 {
@@ -445,7 +446,6 @@ int main(void) {
     int n_failed;
     
     tc = tcase_create("death");
-    tcase_add_test(tc, test_event_handler);
     tcase_add_test(tc, test_state_playing);
     tcase_add_test(tc, test_wt_block);
     tcase_add_test(tc, test_wt_beehive);

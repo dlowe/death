@@ -45,11 +45,6 @@ M ws(M *i, int a, int b) {
     return o;
 }
 
-int e(int i, XEvent e) {
-    long k;
-    return e.type == KeyPress ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (i == 4 ? i : 3) : (k == XK_Down ? (i == 4 ? i : 5) : (i == 2 ? 1 : (i == 4 ? 2 : i))))) : (e.type == KeyRelease ? ((k=XLookupKeysym(&e.xkey, 0)) == XK_Up ? (i == 3 ? 1 : i) : (i == 5 ? 1 : i)) : i);
-}
-
 struct {
     M w;
     int s, p, t, a, b;
@@ -111,10 +106,11 @@ int main() {
         usleep(16666);
 
         while (XPending(d)) {
+            long k;
             XEvent v;
             XNextEvent(d, &v);
     
-            gt(G.s, e(G.s, v));
+            gt(G.s, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (G.s == 4 ? G.s : 3) : (k == XK_Down ? (G.s == 4 ? G.s : 5) : (G.s == 2 ? 1 : (G.s == 4 ? 2 : G.s))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (G.s == 3 ? 1 : G.s) : (G.s == 5 ? 1 : G.s)) : G.s));
         }
 
         if (! G.t) {
