@@ -20,9 +20,7 @@ struct {
 } c;
 
 void h(int a, int b) {
-    if (a == b || (a % 2 && b % 2)) {
-        f = b;
-    } else {
+    if (! (a == b || (a % 2 && b % 2))) {
         if (b == 2) {
             R("splash.d")
         } else if (b == 4) {
@@ -36,8 +34,8 @@ void h(int a, int b) {
         c.b = 240;
         c.g = 1;
         c.a = 0;
-        f = b;
     }
+    f = b;
 }
 
 int main() {
@@ -111,9 +109,7 @@ int main() {
 
         XFillRectangle(i, u, g, 0, 0, 640, 480);
         L {
-            if A(d, e) {
-                XCopyArea(i, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
-            }
+            if A(d, e) XCopyArea(i, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
         }
         if (f % 2) {
             for (d = c.a + 100; d < c.a + 120; ++d) {
