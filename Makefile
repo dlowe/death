@@ -6,11 +6,8 @@ DNAME := $(NAME)-data
 DCODE := $(DNAME).c
 DATA  := 0.d 1.d 2.d
 
-TNAME   := $(NAME)-test
-TCODE   := $(TNAME).c
-
-CC      := clang
-CFLAGS  := -ggdb -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
+CC      := gcc
+CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
 LDFLAGS := -lX11
 
 .PHONY: all
@@ -34,18 +31,11 @@ static-test:
 	@echo "testing README.markdown"
 	@Markdown.pl README.markdown >/dev/null
 
-.PHONY: test
-test: $(TNAME)
-	./$(TNAME)
-
 $(DATA): $(DNAME)
 	./$(DNAME)
 
 $(NAME): static-test $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
-
-$(TNAME): $(DATA) $(TCODE) $(CODE)
-	$(CC) $(CFLAGS) -o $@ $(TCODE) $(LDFLAGS) -lcheck
 
 $(DNAME): $(DCODE) $(CODE)
 	$(CC) $(CFLAGS) -o $@ $(DCODE) $(LDFLAGS)
@@ -53,9 +43,7 @@ $(DNAME): $(DCODE) $(CODE)
 .PHONY: clean
 clean:
 	rm -rf $(NAME) $(OBJ)
-	rm -rf $(TNAME)
 	rm -rf prog.c prog
-	rm -rf $(TNAME).dSYM
 	rm -rf $(DNAME)
 	rm -rf $(DNAME).dSYM
 	rm -rf $(DATA)
