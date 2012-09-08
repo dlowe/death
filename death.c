@@ -43,9 +43,9 @@ void h(int a, int b) {
 int main() {
     Display *i = XOpenDisplay(0);
     int s = DefaultScreen(i);
-    Window w   = XCreateSimpleWindow(i, RootWindow(i, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap u   = XCreatePixmap(i, w, 640, 480, DefaultDepth(i, s)), p = XCreatePixmap(i, w, 20, 100, DefaultDepth(i, s));
-    GC g       = DefaultGC(i, s);
+    Window w = XCreateSimpleWindow(i, RootWindow(i, s), 40, 40, 640, 480, 3, 0, 0);
+    Pixmap u = XCreatePixmap(i, w, 640, 480, a=DefaultDepth(i, s)), p = XCreatePixmap(i, w, 20, 100, a);
+    GC g = DefaultGC(i, s);
     XGCValues W, B;
     long k;
 
