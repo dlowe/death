@@ -8,20 +8,20 @@
 #define B(x, y) ((x)*48+(y))
 #define C(x, y) (1 << B(x,y) % 8)
 #define A(x, y) ((c.c.c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
-#define S(b) (b) ? (c.d.c[B(x,y) / 8] |= C(x,y)) : (c.d.c[B(x,y) / 8] &= ~(C(x,y)))
-#define L for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y)
-#define R(x) freopen(x, "r", stdin); fread(&c.c, 288, 1, stdin);
+#define S(b) (b) ? (c.d.c[B(d,e) / 8] |= C(d,e)) : (c.d.c[B(d,e) / 8] &= ~(C(d,e)))
+#define L for (d = 0; d < 48; ++d) for (e = 0; e < 48; ++e)
+#define R(d) freopen(d, "r", stdin); fread(&c.c, 288, 1, stdin);
 
-int a, b, x, y;
+int a, b, d, e, f;
 
 struct {
     struct { char c[288]; } c, d;
-    int s, p, t, a, b;
+    int f, g, a, b;
 } c;
 
-void gt(int i, int s) {
+void h(int i, int s) {
     if (i == s || (i % 2 && s % 2)) {
-        c.s = s;
+        f = s;
     } else {
         if (s == 2) {
             R("splash.d")
@@ -32,101 +32,101 @@ void gt(int i, int s) {
             c.c = c.d;
         }
 
-        c.p = 1000;
+        c.f = 1000;
         c.b = 240;
-        c.t = 1;
+        c.g = 1;
         c.a = 0;
-        c.s = s;
+        f = s;
     }
 }
 
 int main() {
-    Display *d = XOpenDisplay(0);
-    int s = DefaultScreen(d);
-    Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap u   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 100, DefaultDepth(d, s));
-    GC g       = DefaultGC(d, s);
+    Display *D = XOpenDisplay(0);
+    int s = DefaultScreen(D);
+    Window w   = XCreateSimpleWindow(D, RootWindow(D, s), 40, 40, 640, 480, 3, 0, 0);
+    Pixmap u   = XCreatePixmap(D, w, 640, 480, DefaultDepth(D, s)), p = XCreatePixmap(D, w, 20, 100, DefaultDepth(D, s));
+    GC g       = DefaultGC(D, s);
     XGCValues W, B;
     long k;
 
-    XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
-    XMapWindow(d, w);
-    W.foreground = WhitePixel(d, s);
-    B.foreground = BlackPixel(d, s);
+    XSelectInput(D, w, KeyPressMask | KeyReleaseMask);
+    XMapWindow(D, w);
+    W.foreground = WhitePixel(D, s);
+    B.foreground = BlackPixel(D, s);
 
     R("sprites.d")
 
     L {
-        XChangeGC(d, g, GCForeground, A(x, y) ? &B : &W);
-        if (y < 20) {
-            if (x < 20) {
-                XDrawPoint(d, p, g, x, y);
-            } else if (x < 25) {
-                XFillRectangle(d, p, g, 4 * (x - 20), 20 + 4 * y, 4, 4);
+        XChangeGC(D, g, GCForeground, A(d, e) ? &B : &W);
+        if (e < 20) {
+            if (d < 20) {
+                XDrawPoint(D, p, g, d, e);
+            } else if (d < 25) {
+                XFillRectangle(D, p, g, 4 * (d - 20), 20 + 4 * e, 4, 4);
             }
         }
     }
 
     srand(time(0));
-    gt(0, 2);
+    h(0, 2);
 
-    while (c.s) {
+    while (f) {
         usleep(16666);
 
-        while (XPending(d)) {
+        while (XPending(D)) {
             XEvent v;
-            XNextEvent(d, &v);
+            XNextEvent(D, &v);
     
-            gt(c.s, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (c.s == 4 ? c.s : 3) : (k == XK_Down ? (c.s == 4 ? c.s : 5) : (c.s == 2 ? 1 : (c.s == 4 ? 2 : c.s))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (c.s == 3 ? 1 : c.s) : (c.s == 5 ? 1 : c.s)) : c.s));
+            h(f, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (f == 4 ? f : 3) : (k == XK_Down ? (f == 4 ? f : 5) : (f == 2 ? 1 : (f == 4 ? 2 : f))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (f == 3 ? 1 : f) : (f == 5 ? 1 : f)) : f));
         }
 
-        if (! c.t) {
+        if (! c.g) {
             L {
                 for (k = 0, a = -1; a <= 1; ++a) {
-                    if (x+a >= 0 && x+a < 48) {
+                    if (d+a >= 0 && d+a < 48) {
                         for (b = -1; b <= 1; ++b) {
-                            if (y+b >= 0 && y+b < 48) {
-                                k += (a || b) && A(x+a, y+b);
+                            if (e+b >= 0 && e+b < 48) {
+                                k += (a || b) && A(d+a, e+b);
                             }
                         }
                     }
                 }
 
-                S(A(x, y) ? k == 2 || k == 3 : k == 3);
+                S(A(d, e) ? k == 2 || k == 3 : k == 3);
             }
             c.c = c.d;
         }
-        c.t = ++c.t % (c.s % 2 ? 30 : 120);
-        c.p += 2;
-        c.a += c.s % 2 ? c.p/1000 : 0;
-        c.b += c.s == 3 ? -2 : (c.s == 5 ? 2 : 0);
+        c.g = ++c.g % (f % 2 ? 30 : 120);
+        c.f += 2;
+        c.a += f % 2 ? c.f/1000 : 0;
+        c.b += f == 3 ? -2 : (f == 5 ? 2 : 0);
 
         a = c.a >= 160 ? -8 : 0;
         b = c.b >= 400 ? -8 : (c.b <= 80 ? 8 : 0);
         c.a = a ? 0 : c.a;
         c.b = b ? 240 : c.b;
 
-        L S(((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(x-a, y-b) : ((rand() % 8) == 1));
+        L S(((d-a >= 0) && (d-a < 48) && (e-b >= 0) && (e-b < 48)) ? A(d-a, e-b) : ((rand() % 8) == 1));
         c.c = c.d;
 
-        XFillRectangle(d, u, g, 0, 0, 640, 480);
+        XFillRectangle(D, u, g, 0, 0, 640, 480);
         L {
-            if A(x, y) {
-                XCopyArea(d, p, u, g, 0, 0, 20, 20, x*20-c.a, y*20-c.b);
+            if A(d, e) {
+                XCopyArea(D, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
             }
         }
-        if (c.s % 2) {
-            for (x = c.a + 100; x < c.a + 120; ++x) {
-                for (y = c.b + 248; y < c.b + 268; ++y) {
-                    if A(x / 20, y / 20) {
-                        gt(c.s, 4);
+        if (f % 2) {
+            for (d = c.a + 100; d < c.a + 120; ++d) {
+                for (e = c.b + 248; e < c.b + 268; ++e) {
+                    if A(d / 20, e / 20) {
+                        h(f, 4);
                     }
                 }
             }
-            XCopyArea(d, p, u, g, 0, 20*(c.t / 8 + 1), 20, 20, 100, 248);
+            XCopyArea(D, p, u, g, 0, 20*(c.g / 8 + 1), 20, 20, 100, 248);
         }
 
-        XCopyArea(d, u, w, g, 0, 0, 640, 480, 0, 0);
+        XCopyArea(D, u, w, g, 0, 0, 640, 480, 0, 0);
     }
     return 0;
 }
