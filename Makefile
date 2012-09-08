@@ -10,7 +10,7 @@ TNAME   := $(NAME)-test
 TCODE   := $(TNAME).c
 
 CC      := clang
-CFLAGS  := -ggdb -std=c99 -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
+CFLAGS  := -ggdb -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
 LDFLAGS := -lX11
 
 .PHONY: all
@@ -22,9 +22,9 @@ RULE_SIZE := $(shell cat $(CODE) | perl -pe 's/[;{}]\s//g' | perl -pe 's/\s//g' 
 .PHONY: static-test
 static-test:
 	@echo "code size $(CODE_SIZE) / 4096"
-	# @test $(CODE_SIZE) -le 4096
+	@test $(CODE_SIZE) -le 4096
 	@echo "rule size $(RULE_SIZE) / 2048"
-	# @test $(RULE_SIZE) -le 2048
+	@test $(RULE_SIZE) -le 2048
 	@echo "testing 'build' script"
 	@rm -rf prog.c prog
 	@cp $(CODE) prog.c
@@ -41,7 +41,7 @@ test: $(TNAME)
 $(DATA): $(DNAME)
 	./$(DNAME)
 
-$(NAME): static-test test $(OBJ)
+$(NAME): static-test $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
 
 $(TNAME): $(DATA) $(TCODE) $(CODE)

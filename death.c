@@ -5,79 +5,47 @@
 #include       <time.h>
 #include      <stdio.h>
 
-int x, y;
-
-typedef struct {
-    char c[288];
-} M;
+int x, y, a, b;
 
 #define B(x, y) ((x)*48+(y))
 #define C(x, y) (1 << B(x,y) % 8)
-#define A(w, x, y) (((w)->c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
-#define S(w, x, y, b) (b) ? ((w)->c[B(x,y) / 8] |= C(x,y)) : ((w)->c[B(x,y) / 8] &= ~(C(x,y)))
+#define A(x, y) ((c.c.c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
+#define S(b) (b) ? (c.d.c[B(x,y) / 8] |= C(x,y)) : (c.d.c[B(x,y) / 8] &= ~(C(x,y)))
 #define L for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y)
 
-M wt(M *i) {
-    M o;
-    int n, a, b;
-
-    L {
-        for (n = 0, a = -1; a <= 1; ++a) {
-            if (x+a >= 0 && x+a < 48) {
-                for (b = -1; b <= 1; ++b) {
-                    if (y+b >= 0 && y+b < 48) {
-                        n += (a || b) && A(i, x+a, y+b);
-                    }
-                }
-            }
-        }
-
-        S(&o, x, y, A(i, x, y) ? n == 2 || n == 3 : n == 3);
-    }
-
-    return o;
-}
-
-M ws(M *i, int a, int b) {
-    M o;
-
-    L S(&o, x, y, ((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(i, x-a, y-b) : ((rand() % 8) == 1));
-    return o;
-}
-
 struct {
-    M w;
+    struct { char c[288]; } c, d;
     int s, p, t, a, b;
-} G;
+} c;
 
-#define R(x) freopen(x, "r", stdin); fread(&G.w, 288, 1, stdin);
+#define R(x) freopen(x, "r", stdin); fread(&c.c, 288, 1, stdin);
 
 void gt(int i, int s) {
     if (i == s || (i % 2 && s % 2)) {
-        G.s = s;
+        c.s = s;
     } else {
         if (s == 2) {
             R("2.d")
         } else if (s == 4) {
             R("1.d")
         } else {
-            L S(&G.w, x, y, 0);
+            L S(0);
+            c.c = c.d;
         }
 
-        G.p = 1000;
-        G.b = 240;
-        G.t = 1;
-        G.a = 0;
-        G.s = s;
+        c.p = 1000;
+        c.b = 240;
+        c.t = 1;
+        c.a = 0;
+        c.s = s;
     }
 }
 
-#ifndef _TESTING
 int main() {
     Display *d = XOpenDisplay(0);
     int s = DefaultScreen(d);
     Window w   = XCreateSimpleWindow(d, RootWindow(d, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap b   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 100, DefaultDepth(d, s));
+    Pixmap u   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 100, DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
 
@@ -89,7 +57,7 @@ int main() {
     R("0.d")
 
     L {
-        XChangeGC(d, g, GCForeground, A(&G.w, x, y) ? &B : &W);
+        XChangeGC(d, g, GCForeground, A(x, y) ? &B : &W);
         if (y < 20) {
             if (x < 20) {
                 XDrawPoint(d, p, g, x, y);
@@ -102,7 +70,7 @@ int main() {
     srand(time(0));
     gt(0, 2);
 
-    while (G.s) {
+    while (c.s) {
         usleep(16666);
 
         while (XPending(d)) {
@@ -110,41 +78,56 @@ int main() {
             XEvent v;
             XNextEvent(d, &v);
     
-            gt(G.s, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (G.s == 4 ? G.s : 3) : (k == XK_Down ? (G.s == 4 ? G.s : 5) : (G.s == 2 ? 1 : (G.s == 4 ? 2 : G.s))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (G.s == 3 ? 1 : G.s) : (G.s == 5 ? 1 : G.s)) : G.s));
+            gt(c.s, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (c.s == 4 ? c.s : 3) : (k == XK_Down ? (c.s == 4 ? c.s : 5) : (c.s == 2 ? 1 : (c.s == 4 ? 2 : c.s))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (c.s == 3 ? 1 : c.s) : (c.s == 5 ? 1 : c.s)) : c.s));
         }
 
-        if (! G.t) {
-            G.w = wt(&G.w);
+        if (! c.t) {
+            int n;
+            L {
+                for (n = 0, a = -1; a <= 1; ++a) {
+                    if (x+a >= 0 && x+a < 48) {
+                        for (b = -1; b <= 1; ++b) {
+                            if (y+b >= 0 && y+b < 48) {
+                                n += (a || b) && A(x+a, y+b);
+                            }
+                        }
+                    }
+                }
+
+                S(A(x, y) ? n == 2 || n == 3 : n == 3);
+            }
+            c.c = c.d;
         }
-        G.t = ++G.t % (G.s % 2 ? 30 : 120);
-        G.p += 2;
-        G.a += G.s % 2 ? G.p/1000 : 0;
-        G.b += G.s == 3 ? -2 : (G.s == 5 ? 2 : 0);
+        c.t = ++c.t % (c.s % 2 ? 30 : 120);
+        c.p += 2;
+        c.a += c.s % 2 ? c.p/1000 : 0;
+        c.b += c.s == 3 ? -2 : (c.s == 5 ? 2 : 0);
 
-        x = G.a >= 160 ? -8 : 0;
-        y = G.b >= 400 ? -8 : (G.b <= 80 ? 8 : 0);
-        G.a = x ? 0 : G.a;
-        G.b = y ? 240 : G.b;
-        G.w = ws(&G.w, x, y);
+        a = c.a >= 160 ? -8 : 0;
+        b = c.b >= 400 ? -8 : (c.b <= 80 ? 8 : 0);
+        c.a = a ? 0 : c.a;
+        c.b = b ? 240 : c.b;
 
-        XFillRectangle(d, b, g, 0, 0, 640, 480);
+        L S(((x-a >= 0) && (x-a < 48) && (y-b >= 0) && (y-b < 48)) ? A(x-a, y-b) : ((rand() % 8) == 1));
+        c.c = c.d;
+
+        XFillRectangle(d, u, g, 0, 0, 640, 480);
         L {
-            if A(&G.w, x, y) {
-                XCopyArea(d, p, b, g, 0, 0, 20, 20, x*20-G.a, y*20-G.b);
+            if A(x, y) {
+                XCopyArea(d, p, u, g, 0, 0, 20, 20, x*20-c.a, y*20-c.b);
             }
         }
-        if (G.s % 2) {
-            for (x = G.a + 100; x < G.a + 120; ++x) {
-                for (y = G.b + 248; y < G.b + 268; ++y) {
-                    if A(&G.w, x / 20, y / 20) {
-                        gt(G.s, 4);
+        if (c.s % 2) {
+            for (x = c.a + 100; x < c.a + 120; ++x) {
+                for (y = c.b + 248; y < c.b + 268; ++y) {
+                    if A(x / 20, y / 20) {
+                        gt(c.s, 4);
                     }
                 }
             }
-            XCopyArea(d, p, b, g, 0, 20*(G.t / 8 + 1), 20, 20, 100, 248);
+            XCopyArea(d, p, u, g, 0, 20*(c.t / 8 + 1), 20, 20, 100, 248);
         }
 
-        XCopyArea(d, b, w, g, 0, 0, 640, 480, 0, 0);
+        XCopyArea(d, u, w, g, 0, 0, 640, 480, 0, 0);
     }
 }
-#endif
