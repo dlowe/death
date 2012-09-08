@@ -25,9 +25,9 @@ void gt(int i, int s) {
         c.s = s;
     } else {
         if (s == 2) {
-            R("2.d")
+            R("splash.d")
         } else if (s == 4) {
-            R("1.d")
+            R("dead.d")
         } else {
             L S(0);
             c.c = c.d;
@@ -55,7 +55,7 @@ int main() {
     W.foreground = WhitePixel(d, s);
     B.foreground = BlackPixel(d, s);
 
-    R("0.d")
+    R("sprites.d")
 
     L {
         XChangeGC(d, g, GCForeground, A(x, y) ? &B : &W);
@@ -129,4 +129,5 @@ int main() {
 
         XCopyArea(d, u, w, g, 0, 0, 640, 480, 0, 0);
     }
+    return 0;
 }

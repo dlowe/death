@@ -4,7 +4,7 @@ OBJ  := $(CODE:.c=.o)
 
 DNAME := $(NAME)-data
 DCODE := $(DNAME).c
-DATA  := 0.d 1.d 2.d
+DATA  := splash.d dead.d sprites.d
 
 CC      := gcc
 CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
@@ -34,11 +34,11 @@ static-test:
 $(DATA): $(DNAME)
 	./$(DNAME)
 
-$(NAME): static-test $(OBJ)
+$(NAME): $(DATA) static-test $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
 
 $(DNAME): $(DCODE) $(CODE)
-	$(CC) $(CFLAGS) -o $@ $(DCODE) $(LDFLAGS)
+	$(CC) $(CFLAGS) -std=c99 -o $@ $(DCODE) $(LDFLAGS)
 
 .PHONY: clean
 clean:

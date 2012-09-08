@@ -65,7 +65,7 @@ int main(void) {
             "_OO__OOO_O_O__O__O_O__________";
 
         world splash_world = str_to_world(30, splash_s);
-        FILE *f = fopen("2.d", "w");
+        FILE *f = fopen("splash.d", "w");
         fwrite(&splash_world, sizeof(world), 1, f);
         fclose(f);
     }
@@ -100,7 +100,7 @@ int main(void) {
             "_______O_O_O_O_O___OO_"
             "________O___O__OOO_O_O";
         world dead_world = str_to_world(22, dead_s);
-        FILE *f = fopen("1.d", "w");
+        FILE *f = fopen("dead.d", "w");
         fwrite(&dead_world, sizeof(world), 1, f);
         fclose(f);
     }
@@ -129,7 +129,7 @@ int main(void) {
             "_OOOOOOOOOOOOOOOOOO_" "_____";
 
         world cell_world = str_to_world(25, cell_s);
-        FILE *f = fopen("0.d", "w");
+        FILE *f = fopen("sprites.d", "w");
         fwrite(&cell_world, sizeof(world), 1, f);
         fclose(f);
     }
