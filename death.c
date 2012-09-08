@@ -48,6 +48,7 @@ int main() {
     Pixmap u   = XCreatePixmap(d, w, 640, 480, DefaultDepth(d, s)), p = XCreatePixmap(d, w, 20, 100, DefaultDepth(d, s));
     GC g       = DefaultGC(d, s);
     XGCValues W, B;
+    long k;
 
     XSelectInput(d, w, KeyPressMask | KeyReleaseMask);
     XMapWindow(d, w);
@@ -74,7 +75,6 @@ int main() {
         usleep(16666);
 
         while (XPending(d)) {
-            long k;
             XEvent v;
             XNextEvent(d, &v);
     
@@ -82,19 +82,18 @@ int main() {
         }
 
         if (! c.t) {
-            int n;
             L {
-                for (n = 0, a = -1; a <= 1; ++a) {
+                for (k = 0, a = -1; a <= 1; ++a) {
                     if (x+a >= 0 && x+a < 48) {
                         for (b = -1; b <= 1; ++b) {
                             if (y+b >= 0 && y+b < 48) {
-                                n += (a || b) && A(x+a, y+b);
+                                k += (a || b) && A(x+a, y+b);
                             }
                         }
                     }
                 }
 
-                S(A(x, y) ? n == 2 || n == 3 : n == 3);
+                S(A(x, y) ? k == 2 || k == 3 : k == 3);
             }
             c.c = c.d;
         }
