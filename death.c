@@ -1,22 +1,27 @@
-#include   <X11/Xlib.h>
-#include <X11/keysym.h>
-#include     <stdlib.h>
-#include     <unistd.h>
-#include       <time.h>
-#include      <stdio.h>
+#include    <X11/Xlib.h>
+#include  <X11/keysym.h>
+#include      <stdlib.h>
+#include      <unistd.h>
+#include        <time.h>
+#include       <stdio.h>
+#define B(x, y)(x *48+y)
 
-#define B(x, y) ((x)*48+(y))
-#define L for (d = 0; d < 48; ++d) for (e = 0; e < 48; ++e)
-#define C(x, y) (1 << B(x,y) % 8)
-#define A(x, y) ((c.c.c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
-#define R(d) freopen(d, "r", stdin); fread(&c.c, 288, 1, stdin);
-#define S(b) (b)?(c.d.c[B(d,e)/8]|=C(d,e)):(c.d.c[B(d,e)/8]&=~(C(d,e)))
+#define L for( d=0; d<48                               ; ++d)for(e=0; e<48; ++e)
+#define  C(x  ,  y  )  (                               1 << B ((x) , (y) ) % 8 )
+#define A(x,y )((c.c.c[B                               ((x),(y))/8]&C(x,y))?1:0)
+#define  R(d  )  freopen                               ( d , "r" , stdin ) ;  f\
+read  (   &   c  .  c  ,                               288  ,  1  ,  stdin  )  ;
+#define S( b ) ( b ) ? (                               c.d.c [ B( d , e) / 8 ]|\
+=C ( d , e ) ) : ( c.d.c                               [B(d,e)/ 8]&= ~(C (d,e)))
 
-int a, b, d, e, f, s; struct { struct { char c[288]; } c, d; int f, g, a, b;
-} c; void h(int a, int b) { if (! (a == (f=b) || (a % 2 && b % 2))) { if (b
-== 2) { R("splash.d") } else if (b == 4) { R("dead.d") } else { L S(0); c.c
-= c.d; } c.f = 1000; c.b = 240; c.g = 1; c.a = 0; } } int main() { Display *i
-= XOpenDisplay(0); Window q = XCreateSimpleWindow(i, RootWindow(i, s=
+int a,b,d,e,f,s; struct{   struct{ char c[288]; } c,
+d; int f, g, a, b ; } c;   void h(int a,int b){ if(!
+(a==(f=b)||(a%2&&b%2))){   if(b==2){ R("splash.d") }
+else if ( b == 4 ) { R (   "dead.d" )} else{ L S(0);
+c.c=c.d; } c.f=1000; c.b   =240; c.g =1; c.a =0; } }
+int main (){ Display *i=   XOpenDisplay(0); Window q
+= XCreateSimpleWindow(i,   RootWindow  (  i  ,  s  =
+
 DefaultScreen(i)), 40, 40, 640, 480, 3, 0, 0); Pixmap u = XCreatePixmap(i, q,
 640, 480, a=DefaultDepth(i, s)), p = XCreatePixmap(i, q, 20, 100, a); GC g =
 DefaultGC(i, s); XGCValues W, B; XEvent v; long k; XSelectInput(i, q,
