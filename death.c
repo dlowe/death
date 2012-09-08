@@ -19,13 +19,13 @@ struct {
     int f, g, a, b;
 } c;
 
-void h(int i, int s) {
-    if (i == s || (i % 2 && s % 2)) {
-        f = s;
+void h(int a, int b) {
+    if (a == b || (a % 2 && b % 2)) {
+        f = b;
     } else {
-        if (s == 2) {
+        if (b == 2) {
             R("splash.d")
-        } else if (s == 4) {
+        } else if (b == 4) {
             R("dead.d")
         } else {
             L S(0);
@@ -36,7 +36,7 @@ void h(int i, int s) {
         c.b = 240;
         c.g = 1;
         c.a = 0;
-        f = s;
+        f = b;
     }
 }
 
@@ -128,5 +128,4 @@ int main() {
 
         XCopyArea(D, u, w, g, 0, 0, 640, 480, 0, 0);
     }
-    return 0;
 }
