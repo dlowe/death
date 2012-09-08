@@ -5,20 +5,19 @@
 #include       <time.h>
 #include      <stdio.h>
 
-int x, y, a, b;
-
 #define B(x, y) ((x)*48+(y))
 #define C(x, y) (1 << B(x,y) % 8)
 #define A(x, y) ((c.c.c[B(x,y) / 8] & C(x,y)) ? 1 : 0)
 #define S(b) (b) ? (c.d.c[B(x,y) / 8] |= C(x,y)) : (c.d.c[B(x,y) / 8] &= ~(C(x,y)))
 #define L for (x = 0; x < 48; ++x) for (y = 0; y < 48; ++y)
+#define R(x) freopen(x, "r", stdin); fread(&c.c, 288, 1, stdin);
+
+int a, b, x, y;
 
 struct {
     struct { char c[288]; } c, d;
     int s, p, t, a, b;
 } c;
-
-#define R(x) freopen(x, "r", stdin); fread(&c.c, 288, 1, stdin);
 
 void gt(int i, int s) {
     if (i == s || (i % 2 && s % 2)) {
