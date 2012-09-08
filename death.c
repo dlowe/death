@@ -41,28 +41,28 @@ void h(int a, int b) {
 }
 
 int main() {
-    Display *D = XOpenDisplay(0);
-    int s = DefaultScreen(D);
-    Window w   = XCreateSimpleWindow(D, RootWindow(D, s), 40, 40, 640, 480, 3, 0, 0);
-    Pixmap u   = XCreatePixmap(D, w, 640, 480, DefaultDepth(D, s)), p = XCreatePixmap(D, w, 20, 100, DefaultDepth(D, s));
-    GC g       = DefaultGC(D, s);
+    Display *i = XOpenDisplay(0);
+    int s = DefaultScreen(i);
+    Window w   = XCreateSimpleWindow(i, RootWindow(i, s), 40, 40, 640, 480, 3, 0, 0);
+    Pixmap u   = XCreatePixmap(i, w, 640, 480, DefaultDepth(i, s)), p = XCreatePixmap(i, w, 20, 100, DefaultDepth(i, s));
+    GC g       = DefaultGC(i, s);
     XGCValues W, B;
     long k;
 
-    XSelectInput(D, w, KeyPressMask | KeyReleaseMask);
-    XMapWindow(D, w);
-    W.foreground = WhitePixel(D, s);
-    B.foreground = BlackPixel(D, s);
+    XSelectInput(i, w, KeyPressMask | KeyReleaseMask);
+    XMapWindow(i, w);
+    W.foreground = WhitePixel(i, s);
+    B.foreground = BlackPixel(i, s);
 
     R("sprites.d")
 
     L {
-        XChangeGC(D, g, GCForeground, A(d, e) ? &B : &W);
+        XChangeGC(i, g, GCForeground, A(d, e) ? &B : &W);
         if (e < 20) {
             if (d < 20) {
-                XDrawPoint(D, p, g, d, e);
+                XDrawPoint(i, p, g, d, e);
             } else if (d < 25) {
-                XFillRectangle(D, p, g, 4 * (d - 20), 20 + 4 * e, 4, 4);
+                XFillRectangle(i, p, g, 4 * (d - 20), 20 + 4 * e, 4, 4);
             }
         }
     }
@@ -73,9 +73,9 @@ int main() {
     while (f) {
         usleep(16666);
 
-        while (XPending(D)) {
+        while (XPending(i)) {
             XEvent v;
-            XNextEvent(D, &v);
+            XNextEvent(i, &v);
     
             h(f, v.type == KeyPress ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_q ? 0 : (k == XK_Up ? (f == 4 ? f : 3) : (k == XK_Down ? (f == 4 ? f : 5) : (f == 2 ? 1 : (f == 4 ? 2 : f))))) : (v.type == KeyRelease ? ((k=XLookupKeysym(&v.xkey, 0)) == XK_Up ? (f == 3 ? 1 : f) : (f == 5 ? 1 : f)) : f));
         }
@@ -109,10 +109,10 @@ int main() {
         L S(((d-a >= 0) && (d-a < 48) && (e-b >= 0) && (e-b < 48)) ? A(d-a, e-b) : ((rand() % 8) == 1));
         c.c = c.d;
 
-        XFillRectangle(D, u, g, 0, 0, 640, 480);
+        XFillRectangle(i, u, g, 0, 0, 640, 480);
         L {
             if A(d, e) {
-                XCopyArea(D, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
+                XCopyArea(i, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
             }
         }
         if (f % 2) {
@@ -123,9 +123,9 @@ int main() {
                     }
                 }
             }
-            XCopyArea(D, p, u, g, 0, 20*(c.g / 8 + 1), 20, 20, 100, 248);
+            XCopyArea(i, p, u, g, 0, 20*(c.g / 8 + 1), 20, 20, 100, 248);
         }
 
-        XCopyArea(D, u, w, g, 0, 0, 640, 480, 0, 0);
+        XCopyArea(i, u, w, g, 0, 0, 640, 480, 0, 0);
     }
 }
