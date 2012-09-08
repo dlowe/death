@@ -9,12 +9,15 @@ hosts:
  Linux 3.2.0 x86_64 (gcc 4.6.3)
  Linux 3.2.0 x86_64 (clang 3.0)
 
-obfuscations TODO:
- use a temporary member of the game struct instead of return values for neighbors
-
 bugs:
  flicker at high speed (in spite of double-buffering, presumably because can't lock to refresh rate)
  you don't actually get to *see* the collision, which is confusing if you're killed by a new cell
+
+features:
+ casual gameplay
+ infinite, procedurally generated world
+ progressive difficulty
+ animated splash screens
 
 nice to add:
  score keeping
@@ -25,5 +28,10 @@ nice to add:
  in-game instructions
 
 obfuscations
- magic numbers
- arithmetic properties of magic numbers
+ magic numbers and their relationships and their arithmetic properties
+ variable reuse
+ global struct whose members have the same names as global variables
+ abuse of stdin
+ many globals
+ ternary operators galore
+ formatted into a life cells which will evolve into a glider in 19 steps
