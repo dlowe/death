@@ -22,11 +22,15 @@ c.c=c.d; } c.f=1000; c.b   =240; c.g =1; c.a =0; } }
 int main (){ Display *i=   XOpenDisplay(0); Window q
 = XCreateSimpleWindow(i,   RootWindow  (  i  ,  s  =
 
-DefaultScreen(i)), 40, 40, 640, 480, 3, 0, 0); Pixmap u = XCreatePixmap(i, q,
-640, 480, a=DefaultDepth(i, s)), p = XCreatePixmap(i, q, 20, 100, a); GC g =
-DefaultGC(i, s); XGCValues W, B; XEvent v; long k; XSelectInput(i, q,
-KeyPressMask | KeyReleaseMask); XMapWindow(i, q); W.foreground = WhitePixel(i,
-s); B.foreground = BlackPixel(i, s); R("sprites.d") L { XChangeGC(i, g,
+DefaultScreen(i)),40,40,   640,480,3,0,0); Pixmap u=
+XCreatePixmap (i,q ,640,   480,a=DefaultDepth(i,s)),
+p=XCreatePixmap (i,q,20,   100,a); GC g=DefaultGC(i,
+s ) ;  XGCValues  W, B ;   XEvent   v  ;  long  k  ;
+XSelectInput  (  i , q ,   KeyPressMask|KeyReleaseM\
+ask ); XMapWindow (i,q);   W.foreground = WhitePixel
+(i, s) ; B. foreground =   BlackPixel ( i, s ) ; R (
+
+"sprites.d") L { XChangeGC(i, g,
 GCForeground, A(d, e) ? &B : &W); if (e < 20) if (d < 20) XDrawPoint(i, p, g,
 d, e); else if (d < 25) XFillRectangle(i, p, g, 4 * (d - 20), 20 + 4 * e, 4,
 4); } srand(time(0)); h(0, 2); while (usleep(16666), f) { while (XPending(i))
