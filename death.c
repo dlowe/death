@@ -20,7 +20,7 @@ struct {
 } c;
 
 void h(int a, int b) {
-    if (! (a == b || (a % 2 && b % 2))) {
+    if (! (a == (f=b) || (a % 2 && b % 2))) {
         if (b == 2) {
             R("splash.d")
         } else if (b == 4) {
@@ -35,7 +35,6 @@ void h(int a, int b) {
         c.g = 1;
         c.a = 0;
     }
-    f = b;
 }
 
 int main() {
@@ -56,13 +55,11 @@ int main() {
 
     L {
         XChangeGC(i, g, GCForeground, A(d, e) ? &B : &W);
-        if (e < 20) {
-            if (d < 20) {
+        if (e < 20)
+            if (d < 20)
                 XDrawPoint(i, p, g, d, e);
-            } else if (d < 25) {
+            else if (d < 25)
                 XFillRectangle(i, p, g, 4 * (d - 20), 20 + 4 * e, 4, 4);
-            }
-        }
     }
 
     srand(time(0));
@@ -80,16 +77,10 @@ int main() {
 
         if (! c.g) {
             L {
-                for (k = 0, a = -1; a <= 1; ++a) {
-                    if (d+a >= 0 && d+a < 48) {
-                        for (b = -1; b <= 1; ++b) {
-                            if (e+b >= 0 && e+b < 48) {
-                                k += (a || b) && A(d+a, e+b);
-                            }
-                        }
-                    }
-                }
-
+                for (k = 0, a = -1; a <= 1; ++a)
+                    if (d+a >= 0 && d+a < 48)
+                        for (b = -1; b <= 1; ++b)
+                            if (e+b >= 0 && e+b < 48) k += (a || b) && A(d+a, e+b);
                 S(A(d, e) ? k == 2 || k == 3 : k == 3);
             }
             c.c = c.d;
@@ -108,17 +99,11 @@ int main() {
         c.c = c.d;
 
         XFillRectangle(i, u, g, 0, 0, 640, 480);
-        L {
-            if A(d, e) XCopyArea(i, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b);
-        }
+        L { if A(d, e) XCopyArea(i, p, u, g, 0, 0, 20, 20, d*20-c.a, e*20-c.b); }
         if (f % 2) {
-            for (d = c.a + 100; d < c.a + 120; ++d) {
-                for (e = c.b + 248; e < c.b + 268; ++e) {
-                    if A(d / 20, e / 20) {
-                        h(f, 4);
-                    }
-                }
-            }
+            for (d = c.a + 100; d < c.a + 120; ++d)
+                for (e = c.b + 248; e < c.b + 268; ++e)
+                    if A(d / 20, e / 20) h(f, 4);
             XCopyArea(i, p, u, g, 0, 20*(c.g / 8 + 1), 20, 20, 100, 248);
         }
 
