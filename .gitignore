@@ -1,7 +1,8 @@
 death
-death-test
 death-data
 death.o
+prog
+prog.c
 *.swp
 *.d
 *.dSYM
