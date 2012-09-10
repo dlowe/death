@@ -7,8 +7,8 @@ DCODE := $(DNAME).c
 DATA  := splash.d dead.d sprites.d
 
 CC      := clang
-CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -L/usr/X11R6/lib -D_BSD_SOURCE -O3
-LDFLAGS := -lX11
+CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -D_BSD_SOURCE -O3
+LDFLAGS := -L/usr/X11R6/lib -lX11
 
 .PHONY: all
 all: $(NAME)
