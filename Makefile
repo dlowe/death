@@ -7,7 +7,7 @@ DCODE := $(DNAME).c
 DATA  := splash.d dead.d sprites.d
 
 CC      := gcc
-CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -D_BSD_SOURCE -O3
+CFLAGS  := -Wall -I/usr/X11R6/include -D_BSD_SOURCE -O3
 LDFLAGS := -L/usr/X11R6/lib -lX11
 
 .PHONY: all
