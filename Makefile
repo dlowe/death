@@ -6,7 +6,7 @@ DNAME := $(NAME)-data
 DCODE := $(DNAME).c
 DATA  := splash.d dead.d sprites.d
 
-CC      := clang
+CC      := gcc
 CFLAGS  := -Wall -pedantic-errors -I/usr/X11R6/include -D_BSD_SOURCE -O3
 LDFLAGS := -L/usr/X11R6/lib -lX11
 
