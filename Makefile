@@ -22,8 +22,8 @@ test: prog
 	@test $(CODE_SIZE) -le 4096
 	@echo "rule size $(RULE_SIZE) / 2048"
 	@test $(RULE_SIZE) -le 2048
-	@echo "testing README.markdown"
-	@Markdown.pl README.markdown >/dev/null
+	# @echo "testing README.markdown"
+	# @Markdown.pl README.markdown >/dev/null
 
 $(DATA): $(DNAME)
 	./$(DNAME)
